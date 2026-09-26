@@ -1,0 +1,83 @@
+---
+// The separate player: every live input as one calm row, the one on air marked in orange.
+// Which input is on air is chosen in Station settings (tick "On air now").
+import site from '../data/site.json';
+import { channels } from '../lib/live';
+---
+<section class="inputs" id="live" aria-label="Live inputs">
+  <ol>
+    {channels.map((c, i) => (
+      <li class:list={[{ onair: c.onAir }]}>
+        <span class="num">{String(i + 1).padStart(2, '0')}</span>
+        <div class="txt">
+          <p class="name">{c.name}{c.onAir && <span class="tag">{site.player.onAirTitle}</span>}</p>
+          {c.label && <p class="label">{c.label}</p>}
+          {c.airtimeInfo && <p class="track" data-now-track></p>}
+          {c.onAir && site.liveNote && <p class="note">{site.liveNote}</p>}
+        </div>
+        <button class="play" type="button" data-live={c.id} aria-label={`Play ${c.name}`}>
+          <svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg>
+          <svg class="is" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" fill="currentColor" /></svg>
+        </button>
+      </li>
+    ))}
+  </ol>
+  <p class="pop"><button class="btn" type="button" data-popout>{site.player.popoutButton}</button></p>
+</section>
+
+<script>
+  function paint(now: any) {
+    document.querySelectorAll<HTMLElement>('[data-now-track]').forEach((el) => {
+      el.textContent = now?.show ? `Now: ${now.show}${now.track ? ` · ${now.track}` : ''}` : '';
+    });
+  }
+  document.addEventListener('wbf:now', (e) => paint((e as CustomEvent).detail));
+  document.addEventListener('click', (e) => {
+    if (!(e.target as HTMLElement).closest('[data-popout]')) return;
+    // Stop here so the sound does not play twice, then open the small player window.
+    (window as any).wbf?.stop();
+    window.open('/listen?popup=1', 'wbfplayer', 'width=520,height=640');
+  });
+</script>
+
+<style>
+  ol { list-style: none; margin: 0; padding: 0; }
+  li {
+    display: grid; grid-template-columns: 4.5em minmax(0, 1fr) auto; gap: 20px; align-items: center;
+    padding: 26px 0; border-bottom: 2px solid var(--line);
+  }
+  .num { font-size: 1.2rem; color: var(--ink-soft); }
+  .onair .num { color: var(--wbf-text); }
+  .name { font-size: clamp(1.8rem, 3.6vw, 3rem); font-weight: 700; text-transform: uppercase; letter-spacing: -.02em; line-height: 1.05; margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+  .tag {
+    font-size: .8rem; letter-spacing: .08em; text-transform: uppercase;
+    background: var(--wbf); color: var(--on-wbf); border-radius: 999px; padding: 3px 12px; font-weight: 700; letter-spacing: .04em;
+  }
+  .label { margin: 6px 0 0; font-size: 1.1rem; color: var(--ink-soft); }
+  .track { margin: 6px 0 0; color: var(--wbf-text); overflow-wrap: anywhere; }
+  .track:empty { display: none; }
+  .note { margin: 8px 0 0; font-size: 1.05rem; }
+  .play {
+    width: 72px; height: 72px; border-radius: 50%; cursor: pointer;
+    border: 2px solid var(--ink); background: transparent; color: var(--ink);
+    display: grid; place-items: center; transition: transform .2s ease, background .2s ease;
+  }
+  .play:hover { background: var(--ink); color: var(--paper); transform: scale(1.05); }
+  .onair .play { background: var(--wbf); border-color: var(--wbf); color: var(--on-wbf); }
+  .play svg { width: 30px; height: 30px; }
+  .play .ip { margin-left: 3px; }
+  .play .is { display: none; }
+  .play.is-playing { background: var(--wbf); border-color: var(--wbf); color: var(--on-wbf); }
+  .play.is-playing .ip { display: none; }
+  .play.is-playing .is { display: block; }
+  .pop { margin: 28px 0 0; }
+  :global(html.popup) .pop { display: none; }
+  :global(html.popup) li { padding: 18px 0; grid-template-columns: 2.6em minmax(0, 1fr) auto; }
+  :global(html.popup) .name { font-size: 1.6rem; }
+  :global(html.popup) .play { width: 56px; height: 56px; }
+  @media (max-width: 600px) {
+    li { grid-template-columns: 2.4em minmax(0, 1fr) auto; gap: 12px; padding: 18px 0; }
+    .play { width: 56px; height: 56px; }
+    .num { font-size: 1rem; }
+  }
+</style>

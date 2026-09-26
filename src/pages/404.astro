@@ -1,0 +1,9 @@
+---
+import Base from '../layouts/Base.astro';
+import { t } from '../lib/t';
+---
+<Base title={t.lostTitle}>
+  <h1 class="section-title">{t.lostTitle}</h1>
+  <p class="prose">{t.lostText}</p>
+  <p><a class="btn" href="/">{t.navListen}</a></p>
+</Base>

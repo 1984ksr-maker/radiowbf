@@ -1,0 +1,98 @@
+---
+// Full width picture slider, the title sits on the photo like a poster.
+import type { ArchiveItem } from '../lib/mixcloud';
+import { dotDate } from '../lib/shows';
+import { t } from '../lib/t';
+
+interface Props { items: ArchiveItem[]; label?: string }
+const { items, label = t.featured } = Astro.props;
+---
+<section class="hero" data-hero aria-roledescription="carousel" aria-label="Featured shows">
+  {items.map((it, i) => (
+    <article class="slide" data-slide={i} hidden={i > 0} aria-roledescription="slide" aria-label={`${i + 1} of ${items.length}`}>
+      {it.image && <img class="bg" src={it.image} alt="" loading={i === 0 ? 'eager' : 'lazy'} />}
+      <div class="shade" aria-hidden="true"></div>
+      <div class="cap">
+        <p class="kick"><span aria-hidden="true">✺</span> {label} · {dotDate(it.date)}</p>
+        <h2><a href={it.href}>{it.title}</a></h2>
+        {it.excerpt && <p class="ex">{it.excerpt}{it.excerpt.length >= 180 ? '…' : ''}</p>}
+        {it.play && (
+          <button class="listen" type="button" data-embed={it.play.kind} data-url={it.play.url} data-title={it.title}>
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg>
+            {t.listen}
+          </button>
+        )}
+      </div>
+    </article>
+  ))}
+  {items.length > 1 && (
+    <div class="ctrl">
+      <button type="button" class="arrow" data-step="-1" aria-label="Previous">←</button>
+      <button type="button" class="arrow" data-step="1" aria-label="Next">→</button>
+    </div>
+  )}
+</section>
+
+<script>
+  function initHero() {
+    const hero = document.querySelector<HTMLElement>('[data-hero]');
+    if (!hero || hero.dataset.ready) return;
+    hero.dataset.ready = '1';
+    const slides = [...hero.querySelectorAll<HTMLElement>('[data-slide]')];
+    if (slides.length < 2) return;
+    let cur = 0;
+    let timer: number | undefined;
+    const go = (i: number) => {
+      cur = (i + slides.length) % slides.length;
+      slides.forEach((s, j) => (s.hidden = j !== cur));
+    };
+    const stopT = () => timer && clearInterval(timer);
+    const start = () => {
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      stopT();
+      timer = window.setInterval(() => go(cur + 1), 7000);
+    };
+    hero.querySelectorAll<HTMLButtonElement>('[data-step]').forEach((b) =>
+      b.addEventListener('click', () => { go(cur + Number(b.dataset.step)); start(); }),
+    );
+    hero.addEventListener('mouseenter', stopT);
+    hero.addEventListener('mouseleave', start);
+    document.addEventListener('astro:before-swap', stopT, { once: true });
+    start();
+  }
+  document.addEventListener('astro:page-load', initHero);
+</script>
+
+<style>
+  .hero { position: relative; margin: 0 calc(var(--gutter) * -1); height: min(78vh, 760px); min-height: 420px; background: var(--ink); overflow: hidden; }
+  .slide { position: absolute; inset: 0; }
+  .slide[hidden] { display: none; }
+  .bg { width: 100%; height: 100%; object-fit: cover; animation: zoom 9s ease forwards; }
+  @keyframes zoom { from { transform: scale(1.06); } to { transform: scale(1); } }
+  .shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,.72) 100%); }
+  .cap { position: absolute; left: var(--gutter); right: var(--gutter); bottom: clamp(20px, 4vw, 44px); color: #fff; max-width: 960px; }
+  .kick { font-weight: 700; text-transform: uppercase; letter-spacing: .08em; font-size: .85rem; margin-bottom: 10px; }
+  .kick span { color: var(--wbf); }
+  h2 { font-size: clamp(2.4rem, 6vw, 5.4rem); text-transform: uppercase; line-height: .95; margin-bottom: 14px; }
+  h2 a { text-decoration: none; }
+  h2 a:hover { color: var(--wbf); }
+  .ex { font-size: 1.1rem; max-width: 40em; opacity: .92; }
+  .listen {
+    display: inline-flex; align-items: center; gap: 8px; font: inherit; font-weight: 700; font-size: 1.1rem; text-transform: uppercase;
+    background: var(--wbf); color: var(--on-wbf); border: 0; border-radius: 999px; padding: 10px 22px; cursor: pointer;
+  }
+  .listen:hover, .listen.is-playing { background: #fff; }
+  .ctrl { position: absolute; right: var(--gutter); bottom: clamp(20px, 4vw, 44px); display: flex; }
+  .arrow {
+    width: 50px; height: 38px; font: inherit; font-size: 1.3rem; font-weight: 700; cursor: pointer;
+    background: transparent; color: #fff; border: 2px solid #fff;
+  }
+  .arrow:first-child { border-radius: 999px 0 0 999px; border-right-width: 1px; }
+  .arrow:last-child { border-radius: 0 999px 999px 0; border-left-width: 1px; }
+  .arrow:hover { background: #fff; color: var(--ink); }
+  @media (max-width: 700px) {
+    .hero { height: 72vh; }
+    .ex { display: none; }
+    .ctrl { top: 16px; bottom: auto; }
+  }
+</style>

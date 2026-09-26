@@ -1,0 +1,14 @@
+---
+import { getEntry, render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+const page = (await getEntry('pages', 'datenschutz'))!;
+const { Content } = await render(page);
+---
+<Base title={page.data.title}>
+  <h1 class="section-title">{page.data.title}</h1>
+  {page.data.intro && <p class="muted">{page.data.intro}</p>}
+  <div class="prose legal"><Content /></div>
+</Base>
+<style>
+  .legal :global(p) { white-space: pre-line; }
+</style>

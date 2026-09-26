@@ -1,0 +1,26 @@
+---
+import { getEntry, render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import site from '../data/site.json';
+import { t } from '../lib/t';
+
+const page = (await getEntry('pages', 'about'))!;
+const { Content } = await render(page);
+---
+<Base title="About" description={page.data.intro}>
+  <h1 class="section-title">{page.data.title}</h1>
+  {page.data.intro && <p class="intro">{page.data.intro}</p>}
+  <div class="cols">
+    <div class="prose"><Content /><p><a href={site.instagram} rel="noopener">{t.findUs}</a></p></div>
+    <div class="pics">
+      {page.data.images.map((src, i) => <img src={src} alt="" loading={i ? 'lazy' : 'eager'} />)}
+    </div>
+  </div>
+</Base>
+
+<style>
+  .intro { font-size: clamp(1.5rem, 2.6vw, 2.2rem); line-height: 1.2; max-width: 26em; margin-bottom: 40px; }
+  .cols { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 44px; border-top: 1px solid var(--line); padding-top: 34px; }
+  .pics { display: grid; gap: 16px; }
+  @media (max-width: 860px) { .cols { grid-template-columns: 1fr; } }
+</style>

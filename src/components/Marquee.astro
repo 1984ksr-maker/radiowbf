@@ -1,0 +1,33 @@
+---
+import { t } from '../lib/t';
+// A black band with one big word running across, like the section signs on a flyer wall.
+interface Props { text: string; icon?: string; href?: string; linkText?: string; invert?: boolean }
+const { text, icon = '✺', href, linkText = t.allLink, invert = false } = Astro.props;
+const words = Array.from({ length: 14 });
+---
+<div class:list={['mq', { invert }]}>
+  <div class="track" aria-hidden="true">
+    <div class="move">
+      {words.map(() => <span>{text} <i>{icon}</i></span>)}
+    </div>
+  </div>
+  <h2 class="visually-hidden">{text}</h2>
+  {href && <a class="all" href={href}>{linkText} →</a>}
+</div>
+
+<style>
+  .mq { position: relative; display: flex; align-items: center; background: var(--ink); color: var(--paper); height: 58px; overflow: hidden; margin: 0 calc(var(--gutter) * -1); }
+  .invert { background: var(--wbf); color: var(--on-wbf); }
+  .track { flex: 1 1 auto; overflow: hidden; white-space: nowrap; }
+  .move { display: inline-flex; animation: run 40s linear infinite; }
+  .move span { font-size: 2.2rem; font-weight: 700; text-transform: uppercase; letter-spacing: -.02em; padding-right: .5em; line-height: 1; }
+  .move i { font-style: normal; display: inline-block; animation: spin 6s linear infinite; }
+  @keyframes run { to { transform: translateX(-50%); } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .all {
+    flex: 0 0 auto; margin: 0 var(--gutter) 0 12px; border: 2px solid currentColor; border-radius: 999px;
+    padding: 3px 14px; font-weight: 700; text-transform: uppercase; text-decoration: none; background: inherit;
+  }
+  .all:hover { background: var(--paper); color: var(--ink); }
+  @media (max-width: 600px) { .mq { height: 46px; } .move span { font-size: 1.6rem; } }
+</style>

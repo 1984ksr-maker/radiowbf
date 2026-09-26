@@ -1,0 +1,15 @@
+---
+import Base from '../layouts/Base.astro';
+import WeekSchedule from '../components/WeekSchedule.astro';
+import site from '../data/site.json';
+import { t } from '../lib/t';
+---
+<Base title="Schedule" description="What is on air this week on RadioWBF, straight from the studio calendar.">
+  <h1 class="section-title">{t.scheduleTitle}</h1>
+  <p class="lead">{site.pagesIntro.schedule}</p>
+  <div class="sched"><WeekSchedule big /></div>
+</Base>
+<style>
+  .lead { font-size: 1.1rem; max-width: 34em; margin-bottom: 36px; }
+  .sched { max-width: 980px; }
+</style>

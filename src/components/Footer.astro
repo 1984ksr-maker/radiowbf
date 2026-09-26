@@ -1,0 +1,54 @@
+---
+import site from '../data/site.json';
+import { t } from '../lib/t';
+const year = new Date().getFullYear();
+const links = [
+  { href: '/listen', label: t.navPlayer },
+  { href: '/shows', label: t.navArchive },
+  { href: '/schedule', label: t.navSchedule },
+  { href: '/chat', label: t.navChat },
+  { href: '/about', label: t.navAbout },
+  { href: '/support', label: t.navSupport },
+];
+---
+<footer class="foot wrap">
+  <div class="cols">
+    <div class="left">
+      <img class="big-logo" src={site.logo} alt={`${site.name} logo`} width="200" height="196" loading="lazy" />
+      {site.footer.text1 && <p class="words">{site.footer.text1}</p>}
+      {site.footer.text2 && <p class="words">{site.footer.text2}</p>}
+    </div>
+    <nav class="links" aria-label="Footer">
+      <ul>{links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}</ul>
+    </nav>
+    <div class="social">
+      <p><a href={site.instagram} rel="noopener">Instagram</a></p>
+      <p><a href={site.soundcloud} rel="noopener">SoundCloud</a></p>
+      {site.mixcloudUser && <p><a href={`https://www.mixcloud.com/${site.mixcloudUser}/`} rel="noopener">Mixcloud</a></p>}
+      {site.email && <p><a href={`mailto:${site.email}`}>{site.email}</a></p>}
+    </div>
+  </div>
+  <p class="giant" aria-hidden="true">{site.name}</p>
+  <div class="base">
+    <p>© {year} {site.name}<span class="dot">•</span><a href="/impressum">Impressum</a><span class="dot">•</span><a href="/datenschutz">Datenschutz</a></p>
+    <p class="greet">{site.footer.greeting.map((g, i) => <>{i > 0 && <span class="dot">•</span>}<span class="g">{g}</span></>)}</p>
+  </div>
+</footer>
+
+<style>
+  .foot { margin-top: 70px; background: var(--ink); color: #fff; padding-top: 50px; overflow: hidden; }
+  .foot a { text-decoration: none; }
+  .foot a:hover { color: var(--wbf); }
+  .cols { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr); gap: 40px; }
+  .big-logo { width: 150px; margin-bottom: 26px; }
+  .words { max-width: 34em; font-size: 1.05rem; opacity: .9; }
+  .links ul { list-style: none; margin: 0; padding: 0; }
+  .links a { font-size: 1.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: -.02em; line-height: 1.3; }
+  .social p { margin: 0 0 6px; font-size: 1.1rem; }
+  .giant { font-size: clamp(4rem, 17vw, 18rem); font-weight: 700; text-transform: uppercase; letter-spacing: -.05em; line-height: .8; margin: 40px 0 20px; color: var(--wbf); white-space: nowrap; }
+  .base { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px 30px; padding: 0 0 26px; font-size: .95rem; }
+  .base p { margin: 0; }
+  .dot { margin: 0 .6em; }
+  .g { font-family: var(--sans), var(--sinhala); }
+  @media (max-width: 860px) { .cols { grid-template-columns: 1fr; } }
+</style>

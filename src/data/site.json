@@ -1,0 +1,138 @@
+{
+  "name": "Radio WBF",
+  "fullName": "WeAreBornFree Community Radio",
+  "tagline": "Community radio from Neukölln, Berlin",
+  "description": "RadioWBF is WeAreBornFree Community Radio, a collective radio practice from Neukölln, Berlin. Live channels, community shows, DJ sets, talk shows and an open archive.",
+  "logo": "/img/logo.png",
+  "airtime": "https://onelradio.airtime.pro",
+  "liveNote": "",
+  "channels": [
+    {
+      "name": "Channel 1",
+      "label": "RadioWBF main studio",
+      "stream": "https://onelradio.out.airtime.pro/onelradio_a",
+      "onAir": true,
+      "show": true,
+      "airtimeInfo": true
+    },
+    {
+      "name": "Channel 2",
+      "label": "with Subversive Radio",
+      "stream": "https://subversive-radio.com/stream",
+      "onAir": false,
+      "show": true,
+      "airtimeInfo": false
+    },
+    {
+      "name": "Channel 3",
+      "label": "with reboot.fm",
+      "stream": "https://stream.reboot.fm/listen/1loveradio/radio.mp3",
+      "onAir": false,
+      "show": true,
+      "airtimeInfo": false
+    }
+  ],
+  "mixcloudUser": "",
+  "soundcloud": "https://soundcloud.com/radio_wearebornfree",
+  "soundcloudUserId": "1350446850",
+  "instagram": "https://www.instagram.com/radiowbf/",
+  "chat": "https://radiowbf-chat.netlify.app",
+  "email": "",
+  "motto": "An open invitation to speak and to truly listen",
+  "home": {
+    "freshTitle": "Fresh air",
+    "archiveButton": "The whole archive",
+    "posterShow": true,
+    "posterKicker": "Open call · Radio for all",
+    "posterTitle": "Radio becomes a meeting place.",
+    "posterText": "We invite musicians, artists, activists, community organisers and cultural workers to make their own monthly programme in our shared broadcast space. Come and be heard, come and listen, come and make space for others.",
+    "posterButton": "Write to us on Instagram",
+    "posterLink": "https://www.instagram.com/radiowbf/",
+    "posterImage": "/img/logo.png",
+    "scheduleTitle": "Schedule",
+    "chatTitle": "Webchat"
+  },
+  "player": {
+    "sectionTitle": "Tune in",
+    "onAirTitle": "On air now",
+    "popoutButton": "Open the player in its own window"
+  },
+  "pagesIntro": {
+    "archive": "Listen back to shows made in Neukölln and beyond. Press play and keep browsing, the sound follows you.",
+    "schedule": "This week on Channel 1, read live from the studio calendar. All times are Berlin time.",
+    "chat": "Join the conversation while you listen. Press Live at the top, the radio keeps going while you chat."
+  },
+  "footer": {
+    "text1": "Community radio is the voice of a neighbourhood, a space where everyday voices matter. Not glossy productions, not commercial agendas, but connection: local songs, conversations on migrant rights, stories about life, shaped on the airwaves together.",
+    "text2": "That is what we make here in Neukölln, every day. An open invitation to speak and to truly listen.",
+    "greeting": [
+      "Willkommen",
+      "Welcome",
+      "ආයුබෝවන්"
+    ]
+  },
+  "colors": {
+    "accent": "#f0592f",
+    "ink": "#0e0e0e",
+    "paper": "#ffffff"
+  },
+  "support": {
+    "show": true,
+    "title": "Become a supporter",
+    "text": "RadioWBF is run by volunteers, without ads and without sponsors. A small monthly contribution keeps the studio open, the streams running and the doors wide for new voices.",
+    "button": "Support the radio",
+    "link": ""
+  },
+  "labels": {
+    "navPlayer": "Player",
+    "navArchive": "Archive",
+    "navSchedule": "Schedule",
+    "navChat": "Chat",
+    "navAbout": "About",
+    "navSupport": "Support",
+    "navListen": "Listen",
+    "menu": "Menu",
+    "close": "Close",
+    "live": "Live",
+    "onAir": "On air",
+    "featured": "Featured",
+    "listen": "Listen",
+    "listenToShow": "Listen to this show",
+    "fromArchive": "From the archive",
+    "allLink": "All",
+    "weekLink": "Week",
+    "playerLink": "Player",
+    "archiveTitle": "Archive",
+    "scheduleTitle": "Schedule",
+    "chatTitle": "Chat",
+    "openChat": "Open the chat in its own window",
+    "filterAll": "All",
+    "emptyCategory": "Nothing here yet in this category.",
+    "playAllSoundcloud": "Play everything on SoundCloud",
+    "openOnSoundcloud": "Open on SoundCloud",
+    "curatedBy": "Curated by",
+    "newer": "Newer",
+    "older": "Older",
+    "more": "More",
+    "loadingWeek": "Loading the week…",
+    "nothingPlanned": "Nothing planned yet. Press Live and see what comes.",
+    "scheduleError": "The schedule could not be loaded just now.",
+    "quiet": "is quiet right now. Try another channel.",
+    "days": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday"
+    ],
+    "supportMarquee": "Support",
+    "instagramTitle": "Instagram",
+    "instagramLink": "Follow",
+    "lostTitle": "Lost signal",
+    "lostText": "This page is not on our frequency. Try the start page or the archive, or simply press Live at the top.",
+    "findUs": "Find us on Instagram and SoundCloud."
+  },
+  "instagramFeed": ""
+}

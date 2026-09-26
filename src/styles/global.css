@@ -1,0 +1,86 @@
+/* RadioWBF: black and white like a flyer, with the orange of the logo for everything live.
+   Colours can also be changed in the editor (Station settings > Colours). */
+:root {
+  --paper: #ffffff;
+  --paper-2: #f1efea;
+  --ink: #0e0e0e;
+  --ink-soft: #5b5b5b;
+  --line: #0e0e0e;
+  --wbf: #f0592f;          /* logo orange: live, now, today */
+  --wbf-text: #c9431d;     /* orange for text on white (readable contrast) */
+  --on-wbf: #0e0e0e;       /* text on orange */
+  --sans: 'Space Grotesk Variable', 'Helvetica Neue', Arial, sans-serif;
+  --sinhala: 'Noto Sans Sinhala', sans-serif;
+  --gutter: clamp(14px, 1.6vw, 22px);
+  --head-h: 136px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: calc(var(--head-h) + 16px); }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.45;
+  /* the header with the radio is fixed at the top, so the page starts below it */
+  padding-top: var(--head-h);
+}
+
+img { max-width: 100%; height: auto; display: block; }
+
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { color: var(--wbf-text); }
+
+:focus-visible { outline: 3px solid var(--wbf); outline-offset: 2px; }
+
+h1, h2, h3 { font-weight: 700; line-height: 1.02; margin: 0; letter-spacing: -.02em; }
+p { margin: 0 0 1em; }
+
+.wrap { padding: 0 var(--gutter); }
+.rule { border: 0; border-top: 2px solid var(--line); margin: 0; }
+
+.section-title { font-size: clamp(2.4rem, 6vw, 5rem); text-transform: uppercase; margin: 26px 0 24px; }
+
+/* Boxed tags, like stickers on a record sleeve */
+.pills { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.pill {
+  display: inline-block; border: 1px solid var(--ink); border-radius: 0;
+  padding: 0 6px; font-size: .72rem; line-height: 1.6; letter-spacing: .03em; text-transform: uppercase;
+  text-decoration: none; color: var(--ink); background: transparent; font-family: inherit; cursor: pointer;
+}
+a.pill:hover, button.pill:hover { background: var(--ink); color: var(--paper); }
+.pill[aria-pressed='true'] { background: var(--ink); color: var(--paper); }
+
+.btn {
+  display: inline-flex; align-items: center; gap: .55em;
+  font: inherit; font-weight: 700; font-size: 1rem; text-transform: uppercase; letter-spacing: .02em;
+  cursor: pointer; text-decoration: none;
+  background: transparent; color: var(--ink);
+  border: 2px solid var(--ink); border-radius: 999px; padding: .4em 1.2em;
+}
+.btn:hover { background: var(--ink); color: var(--paper); }
+.btn.is-playing, .btn[aria-pressed='true'] { background: var(--wbf); border-color: var(--wbf); color: var(--on-wbf); }
+
+.muted { color: var(--ink-soft); }
+.small { font-size: .85rem; }
+.prose { max-width: 62ch; font-size: 1.1rem; }
+.prose h2 { font-size: 1.9rem; margin: 1.4em 0 .5em; }
+
+.visually-hidden {
+  position: absolute !important; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* The small player window */
+html.popup .head, html.popup .foot { display: none; }
+html.popup body { padding-top: 0 !important; }
+html.popup main { padding: 22px; }
+html.popup .section-title { font-size: 2rem; margin-top: 0; }

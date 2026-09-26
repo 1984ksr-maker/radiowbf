@@ -1,0 +1,55 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import '@fontsource-variable/space-grotesk';
+import '@fontsource/noto-sans-sinhala/sinhala-400.css';
+import '../styles/global.css';
+import site from '../data/site.json';
+import SiteHeader from '../components/SiteHeader.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+}
+const { title, description = site.description, image = site.logo } = Astro.props;
+const c = site.colors ?? {};
+// Colours chosen in the editor override the defaults in global.css.
+const themeCss = `:root{${c.accent ? `--wbf:${c.accent};` : ''}${c.ink ? `--ink:${c.ink};--line:${c.ink};` : ''}${c.paper ? `--paper:${c.paper};` : ''}}`;
+const fullTitle = title ? `${title} · ${site.name}` : `${site.name} · ${site.fullName}`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL(image, Astro.site);
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href={site.logo} />
+    <link rel="apple-touch-icon" href={site.logo} />
+    <meta name="theme-color" content={c.accent || "#f0592f"} />
+    <style is:inline set:html={themeCss}></style>
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script is:inline>
+      // "?popup=1" opens the small player window without header and footer.
+      if (location.search.includes('popup=1')) document.documentElement.classList.add('popup');
+    </script>
+    <ClientRouter />
+  </head>
+  <body>
+    <a class="skip visually-hidden" href="#main">Skip to content</a>
+    <SiteHeader />
+    <main id="main" class="wrap">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

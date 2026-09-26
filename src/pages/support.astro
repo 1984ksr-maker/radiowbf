@@ -1,0 +1,42 @@
+---
+import { getEntry, render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Marquee from '../components/Marquee.astro';
+import site from '../data/site.json';
+import { t } from '../lib/t';
+
+const page = (await getEntry('pages', 'support'))!;
+const { Content } = await render(page);
+const link = site.support.link || site.instagram;
+---
+<Base title={page.data.title} description={page.data.intro}>
+  <Marquee text={t.supportMarquee} icon="♥" invert />
+  <article class="art">
+    <aside class="meta">
+      <p class="lab">{site.name}</p>
+      <p>{site.tagline}</p>
+    </aside>
+    <div class="main">
+      <h1>{page.data.title}</h1>
+      {page.data.intro && <p class="intro">{page.data.intro}</p>}
+      {page.data.images[0] && <img class="pic" src={page.data.images[0]} alt="" />}
+      <div class="prose"><Content /></div>
+      <p><a class="big-btn" href={link} rel="noopener">{site.support.button}</a></p>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .art { display: grid; grid-template-columns: 200px minmax(0, 720px); gap: 40px; justify-content: center; padding: 50px 0 20px; }
+  .meta { font-size: .95rem; }
+  .lab { font-weight: 700; text-transform: uppercase; letter-spacing: .06em; font-size: .8rem; margin-bottom: 4px; }
+  h1 { font-size: clamp(2.4rem, 5vw, 4.2rem); text-transform: uppercase; margin-bottom: 18px; }
+  .intro { font-size: 1.35rem; font-weight: 500; }
+  .pic { width: 100%; margin: 26px 0 30px; border: 2px solid var(--ink); }
+  .big-btn {
+    display: inline-block; margin-top: 18px; background: var(--wbf); color: var(--on-wbf); border: 2px solid var(--ink);
+    border-radius: 999px; padding: 14px 30px; font-size: 1.3rem; font-weight: 700; text-transform: uppercase; text-decoration: none;
+  }
+  .big-btn:hover { background: var(--ink); color: var(--wbf); }
+  @media (max-width: 800px) { .art { grid-template-columns: 1fr; gap: 10px; } }
+</style>

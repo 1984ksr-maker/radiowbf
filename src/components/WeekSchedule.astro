@@ -1,0 +1,106 @@
+---
+// The week, read live from the Airtime studio calendar.
+import site from '../data/site.json';
+import { t } from '../lib/t';
+interface Props { big?: boolean }
+const { big = false } = Astro.props;
+const days = t.days;
+---
+<div class:list={['week', { big }]} data-week data-api={site.airtime} data-onair={t.onAir} data-nothing={t.nothingPlanned} data-error={t.scheduleError}>
+  <div class="days" role="tablist" aria-label="Day of the week">
+    {days.map((d, i) => (
+      <button type="button" role="tab" class="day" data-day={i} aria-selected="false"><span class="full">{d}</span><span class="short">{d.slice(0, 2)}</span></button>
+    ))}
+  </div>
+  <ul class="slots" role="tabpanel"><li class="empty muted">{t.loadingWeek}</li></ul>
+</div>
+
+<script>
+  const KEYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  type Slot = { name: string; starts: string; ends: string };
+  let cache: Promise<any> | null = null;
+
+  const hhmm = (s: string) => s.split(' ')[1].slice(0, 5);
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+  const berlinNow = () =>
+    new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Berlin', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })
+      .format(new Date()).replace('T', ' ');
+  const todayIndex = () =>
+    ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].indexOf(new Date().toLocaleString('en-US', { weekday: 'short', timeZone: 'Europe/Berlin' }));
+
+  // Join back to back blocks of the same programme into one line.
+  function merge(slots: Slot[]) {
+    const out: Slot[] = [];
+    for (const s of slots) {
+      const last = out[out.length - 1];
+      if (last && last.name.trim() === s.name.trim() && last.ends === s.starts) last.ends = s.ends;
+      else out.push({ ...s });
+    }
+    return out;
+  }
+
+  function show(box: HTMLElement, data: any, day: number) {
+    const now = berlinNow();
+    const today = todayIndex();
+    box.querySelectorAll<HTMLButtonElement>('.day').forEach((b) => {
+      const i = Number(b.dataset.day);
+      b.setAttribute('aria-selected', String(i === day));
+      b.classList.toggle('today', i === today);
+    });
+    const list = box.querySelector('.slots')!;
+    const slots = merge((data?.[KEYS[day]] ?? []) as Slot[]);
+    list.innerHTML = slots.length
+      ? slots.map((s) => {
+          const on = s.starts <= now && now < s.ends;
+          const end = s.ends.slice(0, 10) > s.starts.slice(0, 10) && hhmm(s.ends) === '00:00' ? '24:00' : hhmm(s.ends);
+          return `<li class="${on ? 'on' : ''}"><span class="flag">${on ? `● ${esc(box.dataset.onair ?? '')}` : ''}</span><span class="t">${hhmm(s.starts)} → ${end}</span><span class="n">${esc(s.name.trim())}</span></li>`;
+        }).join('')
+      : `<li class="empty muted">${esc(box.dataset.nothing ?? '')}</li>`;
+  }
+
+  function init() {
+    document.querySelectorAll<HTMLElement>('[data-week]').forEach((box) => {
+      if (box.dataset.ready) return;
+      box.dataset.ready = '1';
+      cache ??= fetch(`${box.dataset.api}/api/week-info`, { cache: 'no-store' }).then((r) => r.json()).catch(() => null);
+      cache.then((data) => {
+        if (!data) {
+          box.querySelector('.slots')!.innerHTML = `<li class="empty muted">${esc(box.dataset.error ?? '')}</li>`;
+          return;
+        }
+        show(box, data, todayIndex());
+        box.querySelectorAll<HTMLButtonElement>('.day').forEach((b) =>
+          b.addEventListener('click', () => show(box, data, Number(b.dataset.day))),
+        );
+      });
+    });
+  }
+  document.addEventListener('astro:page-load', () => { cache = null; init(); });
+</script>
+
+<style>
+  .days { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+  .day {
+    font: inherit; font-weight: 700; text-transform: uppercase; font-size: .95rem; letter-spacing: .02em;
+    background: none; border: 2px solid var(--ink); border-radius: 999px; padding: 4px 16px; color: var(--ink); cursor: pointer;
+  }
+  .day:hover { background: var(--paper-2); }
+  .day.today { border-color: var(--wbf); }
+  .day[aria-selected='true'] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .short { display: none; }
+  .big .day { font-size: 1.1rem; padding: 6px 20px; }
+  .slots { list-style: none; margin: 0; padding: 0; }
+  .slots :global(li) { display: grid; grid-template-columns: 5.5em 9em 1fr; gap: 14px; align-items: center; padding: 10px 12px; font-size: 1.1rem; font-weight: 500; }
+  .big .slots :global(li) { font-size: 1.3rem; padding: 14px 12px; }
+  .slots :global(li:nth-child(odd)) { background: var(--paper-2); }
+  .slots :global(li.on) { background: var(--ink); color: var(--paper); }
+  .slots :global(.flag) { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--wbf); }
+  .slots :global(li.empty) { display: block; background: none; }
+  @media (max-width: 700px) {
+    .full { display: none; }
+    .short { display: inline; }
+    .slots :global(li) { grid-template-columns: 8em 1fr; }
+    .slots :global(.flag) { grid-column: 1 / -1; }
+    .slots :global(.flag:empty) { display: none; }
+  }
+</style>

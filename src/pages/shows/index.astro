@@ -1,0 +1,76 @@
+---
+import Base from '../../layouts/Base.astro';
+import ShowCard from '../../components/ShowCard.astro';
+import { getArchive, CATEGORIES, slugify } from '../../lib/shows';
+import site from '../../data/site.json';
+import { t } from '../../lib/t';
+
+const archive = await getArchive();
+const extra = [...new Set(archive.flatMap((a) => a.categories))].filter((c) => !CATEGORIES.includes(c)).slice(0, 10);
+const cats = [...CATEGORIES, ...extra];
+---
+<Base title="Archive" description="Every RadioWBF show: DJ sets, talk shows and open call programmes, ready to listen back.">
+  <div class="top">
+    <h1 class="section-title">{t.archiveTitle}</h1>
+    <p class="lead">{site.pagesIntro.archive}</p>
+  </div>
+
+  <div class="filters pills" role="group" aria-label="Filter by category">
+    <button type="button" class="pill" data-filter="" aria-pressed="true">{t.filterAll}</button>
+    {cats.map((c) => <button type="button" class="pill" data-filter={slugify(c)} aria-pressed="false">{c}</button>)}
+  </div>
+
+  <div class="grid" id="archive-grid">
+    {archive.map((item, i) => <ShowCard item={item} eager={i < 4} />)}
+  </div>
+  <p id="empty" class="muted" hidden>{t.emptyCategory}</p>
+
+  <p class="all">
+    <button class="btn" type="button" data-embed="soundcloud" data-url={site.soundcloud} data-title="RadioWBF on SoundCloud">
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg>
+      {t.playAllSoundcloud}
+    </button>
+  </p>
+</Base>
+
+<script>
+  function setup() {
+    const grid = document.getElementById('archive-grid');
+    if (!grid) return;
+    const chips = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
+    const apply = (f: string) => {
+      let shown = 0;
+      grid.querySelectorAll<HTMLElement>('.card').forEach((c) => {
+        const ok = !f || (c.dataset.cats ?? '').split(' ').includes(f);
+        c.hidden = !ok;
+        if (ok) shown++;
+      });
+      chips.forEach((ch) => ch.setAttribute('aria-pressed', String(ch.dataset.filter === f)));
+      document.getElementById('empty')!.hidden = shown > 0;
+    };
+    chips.forEach((ch) => ch.addEventListener('click', () => {
+      const f = ch.dataset.filter ?? '';
+      apply(f);
+      const u = new URL(location.href);
+      if (f) u.searchParams.set('c', f); else u.searchParams.delete('c');
+      history.replaceState(history.state, '', u);
+    }));
+    apply(new URL(location.href).searchParams.get('c') ?? '');
+  }
+  document.addEventListener('astro:page-load', setup);
+</script>
+
+<style>
+  .top { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: end; }
+  .lead { font-size: 1.1rem; max-width: 32em; margin-bottom: 26px; }
+  .filters { margin-bottom: 36px; }
+  .filters .pill { font-size: .95rem; padding: 4px 14px; }
+  .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 44px 30px; }
+  .grid :global([hidden]) { display: none; }
+  .all { margin-top: 50px; }
+  @media (max-width: 1100px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 820px) {
+    .top { grid-template-columns: 1fr; gap: 0; }
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 16px; }
+  }
+</style>

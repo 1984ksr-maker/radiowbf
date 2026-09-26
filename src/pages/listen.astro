@@ -1,0 +1,9 @@
+---
+import Base from '../layouts/Base.astro';
+import LivePanel from '../components/LivePanel.astro';
+import site from '../data/site.json';
+---
+<Base title="Player" description="Listen to RadioWBF live, on every input we broadcast with.">
+  <h1 class="section-title">{site.player.sectionTitle}</h1>
+  <LivePanel />
+</Base>

@@ -1,0 +1,71 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { dotDate, slugify } from '../../lib/shows';
+import { t } from '../../lib/t';
+
+export async function getStaticPaths() {
+  const shows = await getCollection('shows');
+  const sorted = shows.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+  return sorted.map((show, i) => ({
+    params: { id: show.id },
+    props: { show, newer: sorted[i - 1], older: sorted[i + 1] },
+  }));
+}
+
+const { show, newer, older } = Astro.props;
+const d = show.data;
+const { Content } = await render(show);
+const play = d.mixcloud ? { kind: 'mixcloud', url: d.mixcloud } : d.soundcloud ? { kind: 'soundcloud', url: d.soundcloud } : null;
+const excerpt = (show.body ?? '').replace(/[*_#>\[\]]/g, '').split(/\n\s*\n/)[0]?.slice(0, 155);
+---
+<Base title={d.title} description={excerpt} image={d.image}>
+  <article class="show">
+    <div class="head">
+      <div class="pic">{d.image && <img src={d.image} alt={d.imageAlt ?? ''} />}</div>
+      <div class="info">
+        <h1>{d.title} <span class="when">• {dotDate(d.date)}</span></h1>
+        {d.curator && <p class="cur">{t.curatedBy} {d.curator}</p>}
+        <ul class="pills">{d.categories.map((c) => <li><a class="pill" href={`/shows?c=${slugify(c)}`}>{c}</a></li>)}</ul>
+        {play && (
+          <p class="listen">
+            <button class="btn" type="button" data-embed={play.kind} data-url={play.url} data-title={d.title}>
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg>
+              {t.listenToShow}
+            </button>
+          </p>
+        )}
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="prose">
+        <Content />
+        {d.link && <p><a class="btn" href={d.link} rel="noopener">{d.linkLabel ?? t.more}</a></p>}
+      </div>
+      {d.gallery.length > 0 && <div class="gallery">{d.gallery.map((g) => <img src={g} alt="" loading="lazy" />)}</div>}
+    </div>
+
+    <nav class="pager" aria-label="More shows">
+      {newer ? <a href={`/shows/${newer.id}`}><span class="muted small">{t.newer}</span><br />{newer.data.title}</a> : <span></span>}
+      {older ? <a class="r" href={`/shows/${older.id}`}><span class="muted small">{t.older}</span><br />{older.data.title}</a> : <span></span>}
+    </nav>
+  </article>
+</Base>
+
+<style>
+  .head { display: grid; grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr); gap: 32px; padding: 16px 0 30px; border-bottom: 1px solid var(--line); }
+  .pic img { width: 100%; max-height: 78vh; object-fit: cover; }
+  h1 { font-size: clamp(2rem, 4vw, 3.4rem); margin-bottom: 18px; }
+  .when { white-space: nowrap; }
+  .cur { font-size: 1.08rem; }
+  .listen { margin-top: 26px; }
+  .body { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 40px; padding-top: 34px; }
+  .gallery { display: grid; gap: 16px; }
+  .pager { display: flex; justify-content: space-between; gap: 30px; margin-top: 60px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 1.1rem; }
+  .pager a { text-decoration: none; max-width: 45%; }
+  .pager .r { text-align: right; }
+  @media (max-width: 860px) {
+    .head, .body { grid-template-columns: 1fr; }
+  }
+</style>

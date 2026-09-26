@@ -1,0 +1,18 @@
+---
+import Base from '../layouts/Base.astro';
+import site from '../data/site.json';
+import { t } from '../lib/t';
+---
+<Base title="Chat" description="Join the RadioWBF community chat while you listen.">
+  <h1 class="section-title">{t.chatTitle}</h1>
+  <p class="lead">{site.pagesIntro.chat}</p>
+  <div class="frame">
+    <iframe src={site.chat} title="RadioWBF community chat" loading="lazy"></iframe>
+  </div>
+  <p class="small"><a href={site.chat} rel="noopener">{t.openChat}</a></p>
+</Base>
+<style>
+  .lead { font-size: 1.1rem; max-width: 34em; margin-bottom: 26px; }
+  .frame { border: 1px solid var(--line); border-radius: 18px; overflow: hidden; background: #fff; }
+  iframe { display: block; width: 100%; height: min(70vh, 720px); border: 0; }
+</style>

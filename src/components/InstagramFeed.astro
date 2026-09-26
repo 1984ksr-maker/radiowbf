@@ -1,0 +1,57 @@
+---
+// Your latest Instagram posts, straight on the website.
+// Uses a free Behold.so JSON feed (paste its address in Station settings > Instagram feed).
+import site from '../data/site.json';
+import Marquee from './Marquee.astro';
+import { t } from '../lib/t';
+const feed = ((site as any).instagramFeed || '').trim();
+---
+{feed && (
+  <section class="ig" data-ig={feed} hidden>
+    <Marquee text={t.instagramTitle} icon="◎" href={site.instagram} linkText={t.instagramLink} />
+    <div class="grid" data-ig-grid></div>
+  </section>
+)}
+
+<script>
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+  async function loadIg() {
+    const box = document.querySelector<HTMLElement>('[data-ig]');
+    if (!box || box.dataset.ready) return;
+    box.dataset.ready = '1';
+    try {
+      const res = await fetch(box.dataset.ig!);
+      const data = await res.json();
+      const posts: any[] = (Array.isArray(data) ? data : data.posts ?? []).slice(0, 6);
+      if (!posts.length) return;
+      const grid = box.querySelector('[data-ig-grid]')!;
+      grid.innerHTML = posts.map((p) => {
+        const img = p.sizes?.medium?.mediaUrl || p.thumbnailUrl || p.mediaUrl || p.media_url;
+        const cap = (p.prunedCaption || p.caption || '').slice(0, 140);
+        const link = p.permalink || '#';
+        return `<a class="post" href="${esc(link)}" target="_blank" rel="noopener">
+          <img src="${esc(img)}" alt="${esc(cap)}" loading="lazy" />
+          <span class="cap">${esc(cap)}</span>
+        </a>`;
+      }).join('');
+      box.hidden = false;
+    } catch {
+      /* no Instagram today, the rest of the page is fine */
+    }
+  }
+  document.addEventListener('astro:page-load', loadIg);
+</script>
+
+<style>
+  .ig { margin-top: 10px; }
+  .grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; padding: 22px 0 40px; }
+  .grid :global(.post) { position: relative; display: block; aspect-ratio: 1; overflow: hidden; border: 2px solid var(--ink); background: var(--paper-2); }
+  .grid :global(.post img) { width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease; }
+  .grid :global(.post:hover img) { transform: scale(1.06); }
+  .grid :global(.cap) {
+    position: absolute; inset: auto 0 0 0; padding: 8px 10px; font-size: .8rem; line-height: 1.3; color: #fff;
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,.8)); opacity: 0; transition: opacity .3s ease;
+  }
+  .grid :global(.post:hover .cap) { opacity: 1; }
+  @media (max-width: 900px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+</style>

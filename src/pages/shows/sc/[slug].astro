@@ -1,0 +1,47 @@
+---
+// A page for every track uploaded to the RadioWBF SoundCloud account, made automatically.
+import Base from '../../../layouts/Base.astro';
+import { getSoundCloudShows } from '../../../lib/soundcloud';
+import { dotDate } from '../../../lib/shows';
+import { t } from '../../../lib/t';
+
+export async function getStaticPaths() {
+  const items = await getSoundCloudShows();
+  const seen = new Set<string>();
+  return items
+    .filter((it) => it.slug && !seen.has(it.slug) && seen.add(it.slug))
+    .map((it) => ({ params: { slug: it.slug! }, props: { it } }));
+}
+
+const { it } = Astro.props;
+const paragraphs = (it.text || '').split(/\n\s*\n|\n/).map((p) => p.trim()).filter(Boolean);
+---
+<Base title={it.title} description={it.excerpt} image={it.image}>
+  <article class="show">
+    <div class="head">
+      <div class="pic">{it.image && <img src={it.image} alt={it.imageAlt ?? ''} />}</div>
+      <div class="info">
+        <p class="kick">SoundCloud · {dotDate(it.date)}</p>
+        <h1>{it.title}</h1>
+        <p class="listen">
+          <button class="btn big" type="button" data-embed="soundcloud" data-url={it.original} data-title={it.title}>
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg>
+            {t.listenToShow}
+          </button>
+        </p>
+        <p><a href={it.original} rel="noopener">{t.openOnSoundcloud} →</a></p>
+      </div>
+    </div>
+    {paragraphs.length > 0 && <div class="prose body">{paragraphs.map((p) => <p>{p}</p>)}</div>}
+  </article>
+</Base>
+
+<style>
+  .head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 36px; padding: 30px 0; border-bottom: 2px solid var(--line); align-items: end; }
+  .pic img { width: 100%; aspect-ratio: 1; object-fit: cover; border: 2px solid var(--ink); }
+  .kick { font-weight: 700; text-transform: uppercase; letter-spacing: .06em; font-size: .85rem; }
+  h1 { font-size: clamp(2.2rem, 5vw, 4.4rem); text-transform: uppercase; margin-bottom: 26px; }
+  .big { background: var(--wbf); border-color: var(--ink); font-size: 1.2rem; padding: .6em 1.4em; }
+  .body { padding-top: 30px; }
+  @media (max-width: 800px) { .head { grid-template-columns: 1fr; } }
+</style>
