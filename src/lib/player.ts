@@ -29,6 +29,10 @@ interface State {
 }
 
 const state: State = { mode: 'idle', channel: liveChannel, loading: false };
+// The input that is on air right now. Starts as the ticked one and follows partner broadcasts.
+let onAirId = liveChannel.id;
+const byId = (id: string) => channels.find((c) => c.id === id) ?? liveChannel;
+export const getOnAir = () => byId(onAirId);
 const audio = new Audio();
 audio.preload = 'none';
 
@@ -61,6 +65,10 @@ export function playLive(id?: string) {
     stop();
     return;
   }
+  startStream(ch);
+}
+
+function startStream(ch: Channel) {
   clearEmbed();
   state.channel = ch;
   state.mode = 'live';
@@ -80,6 +88,7 @@ export function stop() {
   stopLive();
   clearEmbed();
   state.mode = 'idle';
+  state.channel = getOnAir();
   state.loading = false;
   emit();
 }
@@ -186,6 +195,37 @@ async function pollNow() {
   }
 }
 
+// Partner stations: ask /api/onair (a small helper on Cloudflare) every minute
+// whether someone is broadcasting on an input marked "Switch on automatically".
+// The first one live, in the order of Station settings, takes over the big Live button.
+async function pollOnAir() {
+  if (document.hidden || !channels.some((c) => c.autoLive)) return;
+  try {
+    const res = await fetch('/api/onair', { cache: 'no-store' });
+    if (!res.ok) return;
+    const data = await res.json();
+    const live: string[] = Array.isArray(data?.live) ? data.live : [];
+    const pick = channels.find((c) => c.autoLive && live.includes(c.id)) ?? liveChannel;
+    setOnAir(pick);
+  } catch {
+    /* helper not reachable: keep the ticked input */
+  }
+}
+
+function setOnAir(ch: Channel) {
+  if (ch.id === onAirId) return;
+  const before = onAirId;
+  onAirId = ch.id;
+  if (state.mode === 'idle') {
+    state.channel = ch;
+  } else if (state.mode === 'live' && state.channel.id === before) {
+    // Listening to what was on air: follow the broadcast to the new input.
+    startStream(ch);
+  }
+  document.dispatchEvent(new CustomEvent('wbf:onair', { detail: ch }));
+  emit();
+}
+
 let started = false;
 export function startPlayer() {
   if (started) return;
@@ -201,10 +241,13 @@ export function startPlayer() {
   document.addEventListener('astro:page-load', () => {
     syncButtons();
     if (state.now) document.dispatchEvent(new CustomEvent('wbf:now', { detail: state.now }));
+    document.dispatchEvent(new CustomEvent('wbf:onair', { detail: getOnAir() }));
     document.dispatchEvent(new CustomEvent('wbf:state', { detail: { ...state } }));
   });
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) pollNow(); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { pollNow(); pollOnAir(); } });
   pollNow();
+  pollOnAir();
   setInterval(pollNow, 30000);
-  (window as any).wbf = { playLive, playEmbed, stop, getState };
+  setInterval(pollOnAir, 60000);
+  (window as any).wbf = { playLive, playEmbed, stop, getState, getOnAir };
 }
