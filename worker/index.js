@@ -31,10 +31,16 @@ function isLive(data) {
 async function check(ch) {
   try {
     const res = await fetch(ch.statusUrl, {
-      headers: { accept: 'application/json' },
-      signal: AbortSignal.timeout(4000),
-      cf: { cacheTtl: 20, cacheEverything: true },
+      headers: { accept: 'application/json, audio/*', 'icy-metadata': '1' },
+      signal: AbortSignal.timeout(5000),
     });
+    const type = res.headers.get('content-type') || '';
+    // The live check address can also be the stream itself:
+    // if it answers with sound, someone is broadcasting.
+    if (type.startsWith('audio/') || type.includes('mpegurl') || type.includes('ogg')) {
+      res.body?.cancel();
+      return res.ok;
+    }
     if (!res.ok) return false;
     return isLive(await res.json());
   } catch {
