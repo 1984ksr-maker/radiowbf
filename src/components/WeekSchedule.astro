@@ -1,12 +1,13 @@
 ---
-// The week, read live from the Airtime studio calendar.
+// The week, read live from the Airtime studio calendar,
+// plus the public calendar link from Station settings (through /api/calendar).
 import site from '../data/site.json';
 import { t } from '../lib/t';
 interface Props { big?: boolean }
 const { big = false } = Astro.props;
 const days = t.days;
 ---
-<div class:list={['week', { big }]} data-week data-api={site.airtime} data-onair={t.onAir} data-nothing={t.nothingPlanned} data-error={t.scheduleError}>
+<div class:list={['week', { big }]} data-week data-api={site.airtime} data-onair={t.onAir} data-nothing={t.nothingPlanned} data-error={t.scheduleError} data-allday={(t as any).allDay || 'All day'}>
   <div class="days" role="tablist" aria-label="Day of the week">
     {days.map((d, i) => (
       <button type="button" role="tab" class="day" data-day={i} aria-selected="false"><span class="full">{d}</span><span class="short">{d.slice(0, 2)}</span></button>
@@ -17,7 +18,7 @@ const days = t.days;
 
 <script>
   const KEYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-  type Slot = { name: string; starts: string; ends: string };
+  type Slot = { name: string; starts: string; ends: string; allDay?: boolean };
   let cache: Promise<any> | null = null;
 
   const hhmm = (s: string) => s.split(' ')[1].slice(0, 5);
@@ -53,7 +54,8 @@ const days = t.days;
       ? slots.map((s) => {
           const on = s.starts <= now && now < s.ends;
           const end = s.ends.slice(0, 10) > s.starts.slice(0, 10) && hhmm(s.ends) === '00:00' ? '24:00' : hhmm(s.ends);
-          return `<li class="${on ? 'on' : ''}"><span class="flag">${on ? `● ${esc(box.dataset.onair ?? '')}` : ''}</span><span class="t">${hhmm(s.starts)} → ${end}</span><span class="n">${esc(s.name.trim())}</span></li>`;
+          const time = s.allDay ? esc(box.dataset.allday ?? '') : `${hhmm(s.starts)} → ${end}`;
+          return `<li class="${on && !s.allDay ? 'on' : ''}"><span class="flag">${on && !s.allDay ? `● ${esc(box.dataset.onair ?? '')}` : ''}</span><span class="t">${time}</span><span class="n">${esc(s.name.trim())}</span></li>`;
         }).join('')
       : `<li class="empty muted">${esc(box.dataset.nothing ?? '')}</li>`;
   }
@@ -62,7 +64,18 @@ const days = t.days;
     document.querySelectorAll<HTMLElement>('[data-week]').forEach((box) => {
       if (box.dataset.ready) return;
       box.dataset.ready = '1';
-      cache ??= fetch(`${box.dataset.api}/api/week-info`, { cache: 'no-store' }).then((r) => r.json()).catch(() => null);
+      cache ??= Promise.all([
+        fetch(`${box.dataset.api}/api/week-info`, { cache: 'no-store' }).then((r) => r.json()).catch(() => null),
+        fetch('/api/calendar').then((r) => (r.ok ? r.json() : null)).catch(() => null),
+      ]).then(([air, cal]) => {
+        if (!air && !cal?.monday) return null;
+        // Airtime shows and calendar events together, in time order.
+        const week: Record<string, Slot[]> = {};
+        for (const k of KEYS) {
+          week[k] = [...(air?.[k] ?? []), ...(cal?.[k] ?? [])].sort((a: Slot, b: Slot) => a.starts.localeCompare(b.starts));
+        }
+        return week;
+      });
       cache.then((data) => {
         if (!data) {
           box.querySelector('.slots')!.innerHTML = `<li class="empty muted">${esc(box.dataset.error ?? '')}</li>`;
