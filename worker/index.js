@@ -1,8 +1,9 @@
 // A tiny helper that runs on Cloudflare next to the website.
-// The page asks /api/onair every minute. This helper asks the partner stations
+// The page asks /api/onair every minute, and /api/calendar for the schedule. This helper asks the partner stations
 // whether someone is broadcasting right now and answers with the live inputs.
 // Everything else is served straight from the finished website (dist).
 import site from '../src/data/site.json';
+import { calendarWeek } from './calendar.js';
 
 // Same order and codes (ch1, ch2, ...) as the website uses.
 const channels = site.channels
@@ -63,10 +64,34 @@ async function onAir(request, ctx) {
   return res;
 }
 
+// The public calendar link from Station settings, read every 5 minutes at most.
+async function calendar(request, ctx) {
+  const cache = caches.default;
+  const key = new Request(new URL('/api/calendar', request.url).toString());
+  const hit = await cache.match(key);
+  if (hit) return hit;
+  let body = { none: true };
+  let status = 200;
+  try {
+    const week = await calendarWeek((site.calendar || '').trim());
+    if (week) body = week;
+  } catch (err) {
+    body = { error: String(err?.message || err) };
+    status = 502;
+  }
+  const res = new Response(JSON.stringify(body), {
+    status,
+    headers: { 'content-type': 'application/json', 'cache-control': 'public, max-age=300' },
+  });
+  if (status === 200) ctx.waitUntil(cache.put(key, res.clone()));
+  return res;
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === '/api/onair') return onAir(request, ctx);
+    if (url.pathname === '/api/calendar') return calendar(request, ctx);
     return env.ASSETS.fetch(request);
   },
 };
