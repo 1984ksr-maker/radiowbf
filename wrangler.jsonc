@@ -1,8 +1,13 @@
 {
+  // Tells Cloudflare to publish the finished website from the dist folder,
+  // plus the small helper in worker/index.js that answers /api/onair.
   "name": "radiowbf",
+  "main": "worker/index.js",
   "compatibility_date": "2026-09-01",
   "assets": {
     "directory": "./dist",
-    "not_found_handling": "404-page"
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/api/*"]
   }
 }
