@@ -17,7 +17,7 @@ Registergericht: Amtsgericht Charlottenburg\
 Registernummer: VR 42445 B
 
 **Kontakt**\
-E-Mail: [bitte E-Mail-Adresse eintragen]
+E-Mail: wearebornfree_eV@gmail.com
 
 **Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV**\
 Krishan Rajapakshe\
