@@ -1,0 +1,32 @@
+# Looks at the RadioWBF SoundCloud feed every 30 minutes.
+# When a new track is uploaded, it writes the newest track address into
+# src/data/soundcloud-latest.txt and saves it. That save makes Cloudflare
+# rebuild the website, so the upload appears as a post by itself.
+name: SoundCloud watch
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for new uploads
+        run: |
+          ID=$(python3 -c "import json;print(json.load(open('src/data/site.json')).get('soundcloudUserId',''))")
+          if [ -z "$ID" ]; then echo "No SoundCloud user number"; exit 0; fi
+          FEED="https://feeds.soundcloud.net/users/soundcloud:users:$ID/sounds.rss"
+          curl -fsSL "$FEED" -o feed.rss || { echo "Feed not reachable"; exit 0; }
+          NEWEST=$(python3 -c "import xml.etree.ElementTree as E;i=E.parse('feed.rss').getroot().find('channel/item');print((i.findtext('link') or '').strip() if i is not None else '')")
+          OLD=$(cat src/data/soundcloud-latest.txt 2>/dev/null || true)
+          echo "Newest: $NEWEST"
+          if [ -z "$NEWEST" ] || [ "$NEWEST" = "$OLD" ]; then echo "Nothing new"; exit 0; fi
+          echo "$NEWEST" > src/data/soundcloud-latest.txt
+          git config user.name "RadioWBF bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add src/data/soundcloud-latest.txt
+          git commit -m "New SoundCloud upload"
+          git push
