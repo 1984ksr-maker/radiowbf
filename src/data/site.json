@@ -13,7 +13,9 @@
       "stream": "https://onelradio.out.airtime.pro/onelradio_a",
       "onAir": true,
       "show": true,
-      "airtimeInfo": true
+      "airtimeInfo": true,
+      "autoLive": false,
+      "statusUrl": ""
     },
     {
       "name": "Channel 2",
@@ -21,7 +23,9 @@
       "stream": "https://subversive-radio.com/stream",
       "onAir": false,
       "show": true,
-      "airtimeInfo": false
+      "airtimeInfo": false,
+      "autoLive": true,
+      "statusUrl": "https://subversive-radio.com/api/channels"
     },
     {
       "name": "Channel 3",
@@ -29,7 +33,9 @@
       "stream": "https://stream.reboot.fm/listen/1loveradio/radio.mp3",
       "onAir": false,
       "show": true,
-      "airtimeInfo": false
+      "airtimeInfo": false,
+      "autoLive": true,
+      "statusUrl": "https://stream.reboot.fm/api/nowplaying/1loveradio"
     }
   ],
   "mixcloudUser": "",
