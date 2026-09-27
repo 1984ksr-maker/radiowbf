@@ -36,11 +36,13 @@ async function check(ch) {
       signal: AbortSignal.timeout(5000),
     });
     const type = res.headers.get('content-type') || '';
-    // The live check address can also be the stream itself:
-    // if it answers with sound, someone is broadcasting.
+    // The live check address can also be the stream itself.
+    // A real broadcast (from BUTT or similar) sends its station details along
+    // (icy-name, icy-br). An empty filler stream answers with sound but without them.
     if (type.startsWith('audio/') || type.includes('mpegurl') || type.includes('ogg')) {
+      const real = res.headers.has('icy-name') || res.headers.has('icy-br') || res.headers.has('ice-audio-info');
       res.body?.cancel();
-      return res.ok;
+      return res.ok && real;
     }
     if (!res.ok) return false;
     return isLive(await res.json());
