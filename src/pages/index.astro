@@ -11,11 +11,10 @@ import site from '../data/site.json';
 import { t } from '../lib/t';
 
 const archive = await getArchive();
-// Featured shows first in the slider, topped up with the newest ones (four at most).
-const featured = archive.filter((a) => a.featured && a.image);
-const hero = [...featured, ...archive.filter((a) => !a.featured && a.image)].slice(0, 4);
-// Only the four newest shows here. Everything else lives in the archive.
-const fresh = archive.slice(0, 4);
+// The slider always shows the four newest posts that have a picture (SoundCloud uploads included).
+const hero = archive.filter((a) => a.image).slice(0, 4);
+// Eight newest posts in the grid. Everything else lives in the archive.
+const fresh = archive.slice(0, 8);
 const supportLink = site.support.link || '/support';
 ---
 <Base>
