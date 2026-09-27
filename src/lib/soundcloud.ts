@@ -29,7 +29,7 @@ async function loadSoundCloud(max = 300): Promise<ArchiveItem[]> {
   const id = String((site as any).soundcloudUserId || '').trim();
   if (!id) return [];
   // SC_FEED_URL lets a developer test with another feed.
-  const url = process.env.SC_FEED_URL || `https://feeds.soundcloud.net/users/soundcloud:users:${id}/sounds.rss`;
+  const url = process.env.SC_FEED_URL || `https://feeds.soundcloud.com/users/soundcloud:users:${id}/sounds.rss`;
   try {
     const res = await fetch(url);
     if (!res.ok) {
