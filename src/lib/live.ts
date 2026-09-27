@@ -7,6 +7,8 @@ export interface Channel {
   stream: string;
   onAir: boolean;
   airtimeInfo: boolean;
+  /** Switch the big Live button to this input by itself while someone broadcasts on it. */
+  autoLive: boolean;
 }
 
 /**
@@ -23,7 +25,12 @@ export const channels: Channel[] = site.channels
     stream: c.stream,
     onAir: !!c.onAir,
     airtimeInfo: !!c.airtimeInfo,
+    autoLive: !!c.autoLive && !!(c.statusUrl || '').trim(),
   }));
 
-/** The input you are live on right now: the one ticked "On air now" in Station settings. */
+/**
+ * The home input: the one ticked "On air now" in Station settings.
+ * While a partner input with "Switch on automatically" is broadcasting, the player
+ * uses that one instead (see player.ts), and comes back here when it ends.
+ */
 export const liveChannel: Channel = channels.find((c) => c.onAir) ?? channels[0];
