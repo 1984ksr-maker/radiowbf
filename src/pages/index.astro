@@ -25,7 +25,7 @@ const supportLink = site.support.link || '/support';
     {fresh.map((item, i) => <ShowCard item={item} eager={i < 4} />)}
   </section>
 
-  <Marquee text={site.home.scheduleTitle} icon="◷" href="/schedule" linkText={t.weekLink} />
+  <Marquee text={site.home.scheduleTitle} href="/schedule" linkText={t.weekLink} />
   <section class="two">
     <div class="sched"><WeekSchedule /></div>
     <aside class="chat">
