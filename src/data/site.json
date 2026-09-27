@@ -5,6 +5,7 @@
   "description": "RadioWBF is WeAreBornFree Community Radio, a collective radio practice from Neukölln, Berlin. Live channels, community shows, DJ sets, talk shows and an open archive.",
   "logo": "/img/logo.png",
   "airtime": "https://onelradio.airtime.pro",
+  "calendar": "",
   "liveNote": "",
   "channels": [
     {
@@ -138,7 +139,8 @@
     "instagramLink": "Follow",
     "lostTitle": "Lost signal",
     "lostText": "This page is not on our frequency. Try the start page or the archive, or simply press Live at the top.",
-    "findUs": "Find us on Instagram and SoundCloud."
+    "findUs": "Find us on Instagram and SoundCloud.",
+    "allDay": "All day"
   },
   "instagramFeed": ""
 }
