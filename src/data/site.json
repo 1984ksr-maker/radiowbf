@@ -35,7 +35,7 @@
       "show": true,
       "airtimeInfo": false,
       "autoLive": true,
-      "statusUrl": "https://stream.reboot.fm/api/nowplaying/1loveradio"
+      "statusUrl": "https://stream.reboot.fm/listen/1loveradio/radio.mp3"
     }
   ],
   "mixcloudUser": "",
