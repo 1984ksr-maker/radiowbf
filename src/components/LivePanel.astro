@@ -7,10 +7,10 @@ import { channels } from '../lib/live';
 <section class="inputs" id="live" aria-label="Live inputs">
   <ol>
     {channels.map((c, i) => (
-      <li class:list={[{ onair: c.onAir }]}>
+      <li class:list={[{ onair: c.onAir }]} data-ch={c.id}>
         <span class="num">{String(i + 1).padStart(2, '0')}</span>
         <div class="txt">
-          <p class="name">{c.name}{c.onAir && <span class="tag">{site.player.onAirTitle}</span>}</p>
+          <p class="name">{c.name}<span class="tag" hidden={!c.onAir}>{site.player.onAirTitle}</span></p>
           {c.label && <p class="label">{c.label}</p>}
           {c.airtimeInfo && <p class="track" data-now-track></p>}
           {c.onAir && site.liveNote && <p class="note">{site.liveNote}</p>}
@@ -32,6 +32,15 @@ import { channels } from '../lib/live';
     });
   }
   document.addEventListener('wbf:now', (e) => paint((e as CustomEvent).detail));
+  // Move the orange "On air now" mark when a partner station starts or stops broadcasting.
+  document.addEventListener('wbf:onair', (e) => {
+    const id = (e as CustomEvent).detail?.id;
+    document.querySelectorAll<HTMLElement>('.inputs li[data-ch]').forEach((li) => {
+      const on = li.dataset.ch === id;
+      li.classList.toggle('onair', on);
+      li.querySelector<HTMLElement>('.tag')?.toggleAttribute('hidden', !on);
+    });
+  });
   document.addEventListener('click', (e) => {
     if (!(e.target as HTMLElement).closest('[data-popout]')) return;
     // Stop here so the sound does not play twice, then open the small player window.
@@ -49,6 +58,7 @@ import { channels } from '../lib/live';
   .num { font-size: 1.2rem; color: var(--ink-soft); }
   .onair .num { color: var(--wbf-text); }
   .name { font-size: clamp(1.8rem, 3.6vw, 3rem); font-weight: 700; text-transform: uppercase; letter-spacing: -.02em; line-height: 1.05; margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+  .tag[hidden] { display: none; }
   .tag {
     font-size: .8rem; letter-spacing: .08em; text-transform: uppercase;
     background: var(--wbf); color: var(--on-wbf); border-radius: 999px; padding: 3px 12px; font-weight: 700; letter-spacing: .04em;
