@@ -1,6 +1,6 @@
 ---
-// The week, read live from the Airtime studio calendar,
-// plus the public calendar link from Station settings (through /api/calendar).
+// The week, read live from the RadioWBF Google Calendar
+// (the calendar link in Station settings, read through /api/calendar).
 import site from '../data/site.json';
 import { t } from '../lib/t';
 interface Props { big?: boolean }
@@ -64,18 +64,16 @@ const days = t.days;
     document.querySelectorAll<HTMLElement>('[data-week]').forEach((box) => {
       if (box.dataset.ready) return;
       box.dataset.ready = '1';
-      cache ??= Promise.all([
-        fetch(`${box.dataset.api}/api/week-info`, { cache: 'no-store' }).then((r) => r.json()).catch(() => null),
-        fetch('/api/calendar').then((r) => (r.ok ? r.json() : null)).catch(() => null),
-      ]).then(([air, cal]) => {
-        if (!air && !cal?.monday) return null;
-        // Airtime shows and calendar events together, in time order.
-        const week: Record<string, Slot[]> = {};
-        for (const k of KEYS) {
-          week[k] = [...(air?.[k] ?? []), ...(cal?.[k] ?? [])].sort((a: Slot, b: Slot) => a.starts.localeCompare(b.starts));
-        }
-        return week;
-      });
+      // The week comes only from the RadioWBF Google Calendar (through /api/calendar).
+      cache ??= fetch('/api/calendar')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((cal) => {
+          if (!cal?.monday) return null;
+          const week: Record<string, Slot[]> = {};
+          for (const k of KEYS) week[k] = [...(cal[k] ?? [])].sort((a: Slot, b: Slot) => a.starts.localeCompare(b.starts));
+          return week;
+        })
+        .catch(() => null);
       cache.then((data) => {
         if (!data) {
           box.querySelector('.slots')!.innerHTML = `<li class="empty muted">${esc(box.dataset.error ?? '')}</li>`;
