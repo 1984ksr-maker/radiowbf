@@ -15,3 +15,4 @@ RadioWBF is made by volunteers: artists, designers, social workers and activists
 **Open the doors wider.** It helps us invite new voices through the open call and our workshops.
 
 Thank you for listening, sharing and being part of the RadioWBF community.
+
