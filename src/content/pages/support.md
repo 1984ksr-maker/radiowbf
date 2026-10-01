@@ -1,8 +1,8 @@
 ---
-title: "Become a supporter"
-intro: "Keep community radio in Neukölln free, open and independent."
+title: Become a supporter
+intro: Keep community radio in Neukölln free, open and independent.
 images:
-  - /img/img_20250706_150923.jpg
+  - /img/img_20240901_145021.jpg
 ---
 RadioWBF is made by volunteers: artists, designers, social workers and activists who open the studio for anyone who wants to be heard. There are no ads and no sponsors telling us what to play.
 
