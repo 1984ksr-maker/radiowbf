@@ -23,6 +23,7 @@ const links = [
     </nav>
     <div class="social">
       <p><a href={site.instagram} rel="noopener">Instagram</a></p>
+      {(site as any).telegram && <p><a href={(site as any).telegram} rel="noopener">Telegram</a></p>}
       <p><a href={site.soundcloud} rel="noopener">SoundCloud</a></p>
       {site.mixcloudUser && <p><a href={`https://www.mixcloud.com/${site.mixcloudUser}/`} rel="noopener">Mixcloud</a></p>}
       {site.email && <p><a href={`mailto:${site.email}`}>{site.email}</a></p>}
