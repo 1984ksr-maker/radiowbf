@@ -48,6 +48,11 @@ const nav = [
     <a class="insta" href={site.instagram} rel="noopener" aria-label="Instagram">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2" /><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2" /><circle cx="17.3" cy="6.7" r="1.2" fill="currentColor" /></svg>
     </a>
+    {(site as any).telegram && (
+      <a class="insta" href={(site as any).telegram} rel="noopener" aria-label="Telegram">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.5 3.6 2.9 10.8c-1 .4-1 1.6.1 1.9l4.6 1.4 1.8 5.6c.2.7 1.1.9 1.6.4l2.6-2.4 4.8 3.5c.6.4 1.4.1 1.6-.6L22.9 5c.2-1-.6-1.8-1.4-1.4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /><path d="m7.8 14.2 9.6-6.3-7.3 7.9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
+      </a>
+    )}
     <button class="menu-btn" type="button" aria-expanded="false" aria-controls="menu" data-menu={t.menu} data-close={t.close}>{t.menu}</button>
   </div>
 
@@ -56,6 +61,10 @@ const nav = [
       <li><a href="/">{t.navListen}</a></li>
       {nav.map((n) => <li><a href={n.href}>{n.label}</a></li>)}
     </ul>
+    <p class="menu-social">
+      <a href={site.instagram} rel="noopener">Instagram</a>
+      {(site as any).telegram && <a href={(site as any).telegram} rel="noopener">Telegram</a>}
+    </p>
     <p class="menu-ch">
       {channels.map((c, i) => (
         <button type="button" class="ch ch-wide" data-live={c.id}>{i + 1} · {c.label}</button>
@@ -189,6 +198,8 @@ const nav = [
   .nav a { text-decoration: none; font-size: 1.02rem; font-weight: 700; text-transform: uppercase; letter-spacing: .02em; }
   .nav a[aria-current='page'] { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 8px; text-decoration-color: var(--wbf); }
   .insta:hover { color: var(--wbf-text); }
+  .menu-social { display: flex; gap: 22px; margin: 18px 0 0; font-weight: 700; text-transform: uppercase; }
+  .menu-social a { text-decoration: none; }
 
   .menu-btn {
     display: none; flex: 0 0 auto; font: inherit; font-weight: 700; font-size: .95rem; letter-spacing: .06em; text-transform: uppercase;
