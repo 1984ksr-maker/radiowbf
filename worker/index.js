@@ -18,7 +18,8 @@ function isLive(data) {
   const list = Array.isArray(data) ? data : [data];
   for (const d of list) {
     if (!d || typeof d !== 'object') continue;
-    if (d.hasBroadcaster === true) return true;
+    // Subversive reports a live show either way; the sound check afterwards weeds out silent ones.
+    if (d.hasBroadcaster === true || d.isLive === true) return true;
     // AzuraCast (reboot.fm and many others)
     if (d.live && d.live.is_live === true) return true;
     if (d.is_online === true && d.station) return true;
