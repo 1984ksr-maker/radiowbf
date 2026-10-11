@@ -93,7 +93,7 @@ async function onAir(request, ctx) {
 // The community chat, served from radiowbf.de so its play button can use the main player.
 // The chat page itself still lives on Netlify; we fetch it, drop Google Fonts
 // (the site promises no Google) and add a small script for the play button.
-const CHAT_VERSION = 3; // raise this number after changing the chat script below
+const CHAT_VERSION = 4; // raise this number after changing the chat script below
 const CHAT_SOURCE = 'https://radiowbf-chat.netlify.app/';
 const CHAT_FONT = `<style>@font-face{font-family:'Space Grotesk';font-weight:300 700;font-display:swap;src:url(/_astro/space-grotesk-latin-wght-normal.BhU9QXUp.woff2) format('woff2')}</style>`;
 const CHAT_SCRIPT = `<script>
@@ -108,21 +108,18 @@ const CHAT_SCRIPT = `<script>
     playerEl.classList.toggle('playing', !!on);
     statusEl.textContent = loading ? 'connecting\u2026' : on ? 'live \u00b7 ' + (label || 'on air') : 'click play to listen';
   }
-  /* Inside radiowbf.de: use the main player, so both buttons always play the same channel. */
-  var host = null;
-  try { if (window.parent !== window && window.parent.wbf) host = window.parent; } catch (e) {}
-  if (host) {
-    if (vol) vol.style.display = 'none';
-    var sync = function () { var s = host.wbf.getState(); show(s.mode === 'live', s.mode === 'live' && s.loading, s.channel.name); };
-    btn.addEventListener('click', function () {
-      var s = host.wbf.getState();
-      if (s.mode === 'live') host.wbf.stop(); else host.wbf.playLive(host.wbf.getOnAir().id);
-      setTimeout(sync, 50);
-    });
-    host.document.addEventListener('wbf:state', sync);
-    sync();
-    return;
+  /* Inside radiowbf.de: use the main player, so both buttons always play the same channel.
+     The main player may start a moment after this chat, so we look for it again on every click. */
+  function getHost() { try { if (window.parent !== window && window.parent.wbf) return window.parent; } catch (e) {} return null; }
+  var bound = null;
+  function sync() { if (!bound) return; var s = bound.wbf.getState(); show(s.mode === 'live', s.mode === 'live' && s.loading, s.channel.name); }
+  function bind() {
+    var h = getHost();
+    if (!h) return null;
+    if (bound !== h) { bound = h; if (vol) vol.style.display = 'none'; h.document.addEventListener('wbf:state', sync); sync(); }
+    return h;
   }
+  bind(); setTimeout(bind, 1500); setTimeout(bind, 5000);
   /* Opened on its own: play whatever is on air and follow partner broadcasts. */
   var audio = null, cur = null, info = null, pending = null, playing = false, tries = 0, last = 0, stuck = 0, timer = null;
   function load() { return fetch('/api/onair', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) { info = d; return d; }).catch(function () { return info; }); }
@@ -155,6 +152,14 @@ const CHAT_SCRIPT = `<script>
   function drop() { if (!audio) return; audio.onerror = null; audio.onplaying = null; audio.pause(); audio.removeAttribute('src'); audio.load(); audio = null; }
   function stop() { playing = false; clearTimeout(timer); drop(); show(false); }
   btn.addEventListener('click', function () {
+    var host = bind();
+    if (host) {
+      if (playing) stop();
+      var st = host.wbf.getState();
+      if (st.mode === 'live') host.wbf.stop(); else host.wbf.playLive(host.wbf.getOnAir().id);
+      setTimeout(sync, 50);
+      return;
+    }
     if (playing) { stop(); return; }
     tries = 0; show(true, true);
     load().then(function (d) { start(pick(d) || { id: 'ch1', name: 'Channel 1', stream: 'https://onelradio.out.airtime.pro/onelradio_a' }); });
