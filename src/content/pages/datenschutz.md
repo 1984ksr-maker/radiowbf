@@ -32,7 +32,7 @@ Wenn auf der Startseite unsere neuesten Instagram Beiträge angezeigt werden, ge
 
 ## Chat
 
-Der Community Chat wird über Netlify, Inc. bereitgestellt und auf der Startseite sowie auf der Chat Seite eingebettet. Beim Laden des Chats wird die IP Adresse Ihres Geräts an Netlify übertragen. Was Sie im Chat schreiben, ist für alle Teilnehmenden sichtbar.
+Der Community Chat wird über unseren Server ausgeliefert und auf der Startseite sowie auf der Chat Seite eingebettet. Die Nachrichten werden über den Dienst ntfy.sh übertragen und gespeichert, dabei wird die IP Adresse Ihres Geräts an ntfy.sh übertragen. Was Sie im Chat schreiben, ist für alle Teilnehmenden sichtbar.
 
 ## Ihre Rechte
 
