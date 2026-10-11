@@ -260,12 +260,13 @@ async function pollNow() {
   }
 }
 
-// Partner stations: ask /api/onair (a small helper on Cloudflare) every minute
+// Partner stations: ask /api/onair (a small helper on Cloudflare) every 30 seconds
 // whether someone is broadcasting on an input marked "Switch on automatically".
 // The first one live, in the order of Station settings, takes over the big Live button.
 let pendingId = '';
 async function pollOnAir() {
-  if (document.hidden || !channels.some((c) => c.autoLive)) return;
+  // Keep checking while sound plays, also in a background tab: most people listen that way.
+  if ((document.hidden && state.mode !== 'live') || !channels.some((c) => c.autoLive)) return;
   try {
     const res = await fetch('/api/onair', { cache: 'no-store' });
     if (!res.ok) return;
@@ -317,6 +318,6 @@ export function startPlayer() {
   pollNow();
   pollOnAir();
   setInterval(pollNow, 30000);
-  setInterval(pollOnAir, 60000);
+  setInterval(pollOnAir, 30000);
   (window as any).wbf = { playLive, playEmbed, stop, getState, getOnAir };
 }
