@@ -273,9 +273,10 @@ async function pollOnAir() {
     const data = await res.json();
     const live: string[] = Array.isArray(data?.live) ? data.live : [];
     const pick = channels.find((c) => c.autoLive && live.includes(c.id)) ?? liveChannel;
-    // Only switch when two checks in a row agree, so a short hiccup never moves the button.
     if (pick.id === onAirId) { pendingId = ''; return; }
-    if (pendingId === pick.id) { pendingId = ''; setOnAir(pick); }
+    // A partner going live is switched to at once: the helper already checked that sound flows.
+    // Going back to the home channel waits for two checks in a row, so a short hiccup never cuts a live show.
+    if (pick.autoLive || pendingId === pick.id) { pendingId = ''; setOnAir(pick); }
     else pendingId = pick.id;
   } catch {
     /* helper not reachable: keep the ticked input */
