@@ -36,6 +36,13 @@ export const getOnAir = () => byId(onAirId);
 const audio = new Audio();
 audio.preload = 'none';
 
+// Keeping the sound alive: reconnect when a stream drops or goes silent,
+// and fall back to the home input (Airtime) if a partner stream keeps failing.
+let retries = 0;
+let lastTime = 0;
+let stuckSince = 0;
+let retryTimer: ReturnType<typeof setTimeout> | undefined;
+
 function emit() {
   document.dispatchEvent(new CustomEvent('wbf:state', { detail: { ...state } }));
   syncButtons();
@@ -68,23 +75,34 @@ export function playLive(id?: string) {
   startStream(ch);
 }
 
-function startStream(ch: Channel) {
+function startStream(ch: Channel, isRetry = false) {
+  if (!isRetry) retries = 0;
+  clearTimeout(retryTimer);
+  lastTime = 0;
+  stuckSince = Date.now();
   clearEmbed();
   state.channel = ch;
   state.mode = 'live';
   state.loading = true;
   // A fresh query string makes the browser join the stream now, not replay a buffer.
   audio.src = `${ch.stream}${ch.stream.includes('?') ? '&' : '?'}t=${Date.now()}`;
-  audio.play().catch(() => {
-    state.mode = 'idle';
-    state.loading = false;
-    emit();
+  audio.play().catch((err) => {
+    // The browser blocked playing (needs a click): stop quietly. Anything else: try again.
+    if (err?.name === 'NotAllowedError') {
+      state.mode = 'idle';
+      state.loading = false;
+      emit();
+    } else {
+      recover();
+    }
   });
   setMediaSession();
   emit();
 }
 
 export function stop() {
+  clearTimeout(retryTimer);
+  retries = 0;
   stopLive();
   clearEmbed();
   state.mode = 'idle';
@@ -130,13 +148,55 @@ audio.addEventListener('waiting', () => {
     emit();
   }
 });
-audio.addEventListener('error', () => {
-  if (state.mode !== 'live' || !audio.getAttribute('src')) return;
+// Something went wrong with the live sound: try the same stream again (3 times),
+// then fall back to the home input, and only then give up.
+function recover() {
+  if (state.mode !== 'live') return;
+  clearTimeout(retryTimer);
+  retries += 1;
+  state.loading = true;
+  emit();
+  if (retries <= 3) {
+    retryTimer = setTimeout(() => state.mode === 'live' && startStream(state.channel, true), 1500 * retries);
+    return;
+  }
+  if (state.channel.id !== liveChannel.id) {
+    // A partner stream keeps failing: go back to the studio stream.
+    onAirId = liveChannel.id;
+    document.dispatchEvent(new CustomEvent('wbf:onair', { detail: liveChannel }));
+    startStream(liveChannel);
+    return;
+  }
+  stopLive();
   state.mode = 'idle';
   state.loading = false;
   emit();
   document.dispatchEvent(new CustomEvent('wbf:error', { detail: state.channel }));
+}
+
+audio.addEventListener('error', () => {
+  if (state.mode !== 'live' || !audio.getAttribute('src')) return;
+  recover();
 });
+audio.addEventListener('ended', () => recover());
+audio.addEventListener('stalled', () => { if (state.mode === 'live') stuckSince ||= Date.now(); });
+
+// Watchdog: if the sound stops moving for 12 seconds while we should be playing, reconnect.
+setInterval(() => {
+  if (state.mode !== 'live') return;
+  const t = audio.currentTime;
+  if (t > lastTime + 0.2) {
+    lastTime = t;
+    stuckSince = 0;
+    if (t > 30) retries = 0; // playing fine for a while: forget earlier problems
+    return;
+  }
+  if (!stuckSince) stuckSince = Date.now();
+  if (Date.now() - stuckSince > 12000) {
+    stuckSince = 0;
+    recover();
+  }
+}, 3000);
 
 // Keep every play button on the current page in sync with what is playing.
 export function syncButtons() {
@@ -198,6 +258,7 @@ async function pollNow() {
 // Partner stations: ask /api/onair (a small helper on Cloudflare) every minute
 // whether someone is broadcasting on an input marked "Switch on automatically".
 // The first one live, in the order of Station settings, takes over the big Live button.
+let pendingId = '';
 async function pollOnAir() {
   if (document.hidden || !channels.some((c) => c.autoLive)) return;
   try {
@@ -206,7 +267,10 @@ async function pollOnAir() {
     const data = await res.json();
     const live: string[] = Array.isArray(data?.live) ? data.live : [];
     const pick = channels.find((c) => c.autoLive && live.includes(c.id)) ?? liveChannel;
-    setOnAir(pick);
+    // Only switch when two checks in a row agree, so a short hiccup never moves the button.
+    if (pick.id === onAirId) { pendingId = ''; return; }
+    if (pendingId === pick.id) { pendingId = ''; setOnAir(pick); }
+    else pendingId = pick.id;
   } catch {
     /* helper not reachable: keep the ticked input */
   }
