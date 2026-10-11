@@ -19,7 +19,9 @@ function isLive(data) {
   for (const d of list) {
     if (!d || typeof d !== 'object') continue;
     // Subversive reports a live show either way; the sound check afterwards weeds out silent ones.
-    if (d.hasBroadcaster === true || d.isLive === true) return true;
+    // Subversive: only a connected DJ counts. isLive alone just means their own music is running.
+    if (d.hasBroadcaster === true) return true;
+    if (d.hasBroadcaster === false) continue;
     // AzuraCast (reboot.fm and many others)
     if (d.live && d.live.is_live === true) return true;
     if (d.is_online === true && d.station) return true;
