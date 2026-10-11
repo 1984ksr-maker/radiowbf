@@ -8,7 +8,7 @@ import { calendarWeek } from './calendar.js';
 // Same order and codes (ch1, ch2, ...) as the website uses.
 const channels = site.channels
   .filter((c) => c.show !== false && c.stream)
-  .map((c, i) => ({ id: `ch${i + 1}`, statusUrl: (c.statusUrl || '').trim(), autoLive: !!c.autoLive }));
+  .map((c, i) => ({ id: `ch${i + 1}`, stream: c.stream, statusUrl: (c.statusUrl || '').trim(), autoLive: !!c.autoLive }));
 
 // Understands the status pages of the usual radio servers.
 function isLive(data) {
@@ -29,6 +29,26 @@ function isLive(data) {
   return false;
 }
 
+// Does the stream really send sound? Reads the first bytes, gives up after 5 seconds.
+async function soundFlows(url) {
+  try {
+    const res = await fetch(url, { headers: { 'icy-metadata': '1' }, signal: AbortSignal.timeout(6000) });
+    if (!res.ok || !res.body) return false;
+    const reader = res.body.getReader();
+    let got = 0;
+    const until = Date.now() + 5000;
+    while (got < 8000 && Date.now() < until) {
+      const part = await Promise.race([reader.read(), new Promise((r) => setTimeout(() => r({ done: true, timeout: true }), until - Date.now()))]);
+      if (part.done) break;
+      got += part.value?.length || 0;
+    }
+    reader.cancel().catch(() => {});
+    return got >= 8000;
+  } catch {
+    return false;
+  }
+}
+
 async function check(ch) {
   try {
     const res = await fetch(ch.statusUrl, {
@@ -42,10 +62,11 @@ async function check(ch) {
     if (type.startsWith('audio/') || type.includes('mpegurl') || type.includes('ogg')) {
       const real = res.headers.has('icy-name') || res.headers.has('icy-br') || res.headers.has('ice-audio-info');
       res.body?.cancel();
-      return res.ok && real;
+      return res.ok && real && (await soundFlows(ch.stream));
     }
     if (!res.ok) return false;
-    return isLive(await res.json());
+    // The status page says live: only believe it if the stream really sends sound.
+    return isLive(await res.json()) && (await soundFlows(ch.stream));
   } catch {
     return false;
   }
