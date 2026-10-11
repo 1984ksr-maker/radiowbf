@@ -228,9 +228,14 @@ function setMediaSession() {
 }
 
 // Airtime knows what is on Channel 1. We ask it every 30 seconds while the page is visible.
+// Airtime sends some characters in coded form (&#039; for an apostrophe): turn them back.
+function decodeEnt(s?: string) {
+  return (s || '').replace(/&#0*39;|&apos;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+}
+
 function cleanTrack(name?: string) {
   if (!name) return '';
-  return name.replace(/^\s*-\s*/, '').replace(/\.(mp3|wav|flac|aac|m4a|ogg)$/i, '').replace(/_+/g, ' ').replace(/\s*\(\d+\)$/, '').trim();
+  return decodeEnt(name).replace(/^\s*-\s*/, '').replace(/\.(mp3|wav|flac|aac|m4a|ogg)$/i, '').replace(/_+/g, ' ').replace(/\s*\(\d+\)$/, '').trim();
 }
 
 async function pollNow() {
@@ -242,9 +247,9 @@ async function pollNow() {
     const next = data?.shows?.next?.[0];
     const track = data?.tracks?.current;
     state.now = {
-      show: cur?.name?.trim(),
+      show: decodeEnt(cur?.name).trim() || undefined,
       track: cleanTrack(track?.metadata?.track_title || track?.name),
-      nextShow: next?.name?.trim(),
+      nextShow: decodeEnt(next?.name).trim() || undefined,
       nextStarts: next?.starts,
       live: data?.station?.source_enabled === 'Master' || data?.station?.source_enabled === 'Show',
     };
