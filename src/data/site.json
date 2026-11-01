@@ -29,14 +29,14 @@
       "statusUrl": "https://subversive-radio.com/api/channels"
     },
     {
-      "name": "Channel 3",
-      "label": "with reboot.fm",
-      "stream": "https://stream.reboot.fm/listen/1loveradio/radio.mp3",
+      "name": "DAB Kanal 7D",
+      "label": "",
+      "stream": "https://onelradio.out.airtime.pro/onelradio_b",
       "onAir": false,
       "show": true,
       "airtimeInfo": false,
-      "autoLive": true,
-      "statusUrl": "https://stream.reboot.fm/listen/1loveradio/radio.mp3"
+      "autoLive": false,
+      "statusUrl": ""
     }
   ],
   "mixcloudUser": "",
