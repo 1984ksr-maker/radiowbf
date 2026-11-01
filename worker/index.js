@@ -96,7 +96,7 @@ async function onAir(request, ctx) {
 // The community chat, served from radiowbf.de so its play button can use the main player.
 // The chat page itself still lives on Netlify; we fetch it, drop Google Fonts
 // (the site promises no Google) and add a small script for the play button.
-const CHAT_VERSION = 4; // raise this number after changing the chat script below
+const CHAT_VERSION = 5; // raise this number after changing the chat script below
 const CHAT_SOURCE = 'https://radiowbf-chat.netlify.app/';
 const CHAT_FONT = `<style>@font-face{font-family:'Space Grotesk';font-weight:300 700;font-display:swap;src:url(/_astro/space-grotesk-latin-wght-normal.BhU9QXUp.woff2) format('woff2')}</style>`;
 const CHAT_SCRIPT = `<script>
@@ -194,6 +194,8 @@ async function chat(request, ctx) {
   if (!src.ok) return Response.redirect(CHAT_SOURCE, 302);
   const page = new HTMLRewriter()
     .on('link[href*="fonts.googleapis.com"], link[href*="fonts.gstatic.com"]', { element(el) { el.remove(); } })
+    // The chat still carries the old logo: show the current RadioWBF logo instead.
+    .on('img.station__logoimg', { element(el) { el.setAttribute('src', '/img/logo-wbf.png'); el.setAttribute('alt', 'RadioWBF'); } })
     .on('head', { element(el) { el.append(CHAT_FONT, { html: true }); } })
     .on('body', { element(el) { el.append(CHAT_SCRIPT, { html: true }); } })
     .transform(src);
