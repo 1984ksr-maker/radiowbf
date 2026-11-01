@@ -17,7 +17,7 @@ Registergericht: Amtsgericht Charlottenburg\
 Registernummer: VR 42445 B
 
 **Kontakt**\
-E-Mail: wearebornfree_eV@gmail.com
+E-Mail: studio@radiowbf.de
 
 **Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV**\
 Krishan Rajapakshe\
