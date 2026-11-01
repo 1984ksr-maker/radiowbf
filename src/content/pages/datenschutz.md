@@ -5,7 +5,7 @@ intro: "Datenschutzerklärung von RadioWBF"
 ## Verantwortliche Stelle
 
 Wearebornfree e.V., Elsenstraße 75, 12059 Berlin, Deutschland\
-E-Mail: wearebornfree_eV@gmail.com\
+E-Mail: studio@radiowbf.de\
 Vertreten durch den Vorstand, siehe [Impressum](/impressum).
 
 ## Hosting
@@ -14,7 +14,7 @@ Diese Website wird bei Cloudflare, Inc. gehostet. Beim Aufruf der Seiten verarbe
 
 ## Livestream
 
-Wenn Sie auf Play drücken, wird der Audiostream direkt von Airtime Pro (Sourcefabric) bzw. von unseren Partnersendern Subversive Radio und reboot.fm geladen. Dabei wird die IP Adresse Ihres Geräts an diese Anbieter übertragen. Die Programminformationen („Now playing“) werden direkt von Airtime Pro abgerufen, auch ohne dass Sie auf Play drücken.
+Wenn Sie auf Play drücken, wird der Audiostream direkt von Airtime Pro (Sourcefabric) bzw. von unserem Partnersender Subversive Radio geladen. Dabei wird die IP Adresse Ihres Geräts an diese Anbieter übertragen. Die Programminformationen („Now playing“) werden direkt von Airtime Pro abgerufen, auch ohne dass Sie auf Play drücken.
 
 Ob gerade ein Partnersender live ist, fragt unser Server bei Cloudflare ab. Dabei werden keine Daten von Ihnen an die Partnersender weitergegeben.
 
@@ -33,6 +33,10 @@ Wenn auf der Startseite unsere neuesten Instagram Beiträge angezeigt werden, ge
 ## Chat
 
 Der Community Chat wird über unseren Server ausgeliefert und auf der Startseite sowie auf der Chat Seite eingebettet. Die Nachrichten werden über den Dienst ntfy.sh übertragen und gespeichert, dabei wird die IP Adresse Ihres Geräts an ntfy.sh übertragen. Was Sie im Chat schreiben, ist für alle Teilnehmenden sichtbar.
+
+## E-Mail
+
+Wenn Sie uns an studio@radiowbf.de schreiben, wird Ihre Nachricht über den Dienst Email Routing von Cloudflare, Inc. an ein Postfach bei Google (Gmail) weitergeleitet. Dabei verarbeiten Cloudflare und Google Ihre E-Mail Adresse, den Inhalt der Nachricht und technische Daten wie die IP Adresse des sendenden Servers. Wir nutzen diese Daten nur, um Ihre Anfrage zu beantworten (Art. 6 Abs. 1 lit. b und f DSGVO).
 
 ## Ihre Rechte
 
