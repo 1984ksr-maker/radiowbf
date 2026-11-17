@@ -41,7 +41,7 @@ async function loadSoundCloud(max = 300): Promise<ArchiveItem[]> {
     const out: ArchiveItem[] = items.slice(0, max).map((it) => {
       const link = tag(it, 'link');
       const title = tag(it, 'title');
-      const image = it.match(/<itunes:image[^>]*href="([^"]+)"/)?.[1]?.replace('-large.', '-t500x500.');
+      const image = it.match(/<itunes:image[^>]*href="([^"]+)"/)?.[1]?.replace(/-(large|t3000x3000|original)\./, '-t500x500.');
       const text = tag(it, 'description').replace(/<[^>]+>/g, ' ').replace(/[ \t]+/g, ' ').trim();
       const slug = (link.split('/').filter(Boolean).pop() || title).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
       return {
