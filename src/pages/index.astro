@@ -21,7 +21,7 @@ const supportLink = site.support.link || '/support';
   <HeroSlider items={hero} />
 
   <Marquee text={site.home.freshTitle} href="/shows" linkText={site.home.archiveButton} />
-  <section class="grid">
+  <section class="grid" data-fresh>
     {fresh.map((item, i) => <ShowCard item={item} eager={i < 4} />)}
   </section>
 
@@ -59,6 +59,65 @@ const supportLink = site.support.link || '/support';
     </section>
   )}
 </Base>
+
+<script>
+  // New SoundCloud uploads appear here within minutes, before the website is rebuilt.
+  // Each new upload takes the place of the oldest card; its own page follows with the next rebuild.
+  async function freshUploads() {
+    const grid = document.querySelector<HTMLElement>('[data-fresh]');
+    const model = grid?.querySelector<HTMLElement>('.card');
+    if (!grid || !model || grid.dataset.done) return;
+    grid.dataset.done = '1';
+    let items: { title: string; link: string; date: string; image: string }[] = [];
+    try {
+      const res = await fetch('/api/soundcloud');
+      if (res.ok) items = (await res.json()).items || [];
+    } catch { return; }
+    const norm = (u: string) => u.replace(/^https?:\/\/(www\.|m\.)?/, '').replace(/[?#].*$/, '').replace(/\/$/, '').toLowerCase();
+    const known = new Set([...grid.querySelectorAll<HTMLElement>('[data-url]')].map((b) => norm(b.dataset.url || '')));
+    const newest = Math.max(0, ...[...grid.querySelectorAll('time')].map((t) => Date.parse(t.getAttribute('datetime') || '') || 0));
+    const fresh = items.filter((i) => !known.has(norm(i.link)) && Date.parse(i.date) > newest);
+    if (!fresh.length) return;
+    const total = grid.querySelectorAll('.card').length;
+    const dot = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d).replaceAll('-', '.');
+    for (const it of fresh.reverse()) {
+      const card = model.cloneNode(true) as HTMLElement;
+      card.dataset.cats = '';
+      card.querySelectorAll('a').forEach((a) => { a.href = it.link; a.rel = 'noopener'; });
+      const box = card.querySelector('.img');
+      if (box) {
+        const img = document.createElement('img');
+        img.src = it.image || (model.querySelector('.blank img') as HTMLImageElement)?.src || '';
+        img.alt = '';
+        img.decoding = 'async';
+        for (const at of box.getAttributeNames()) if (at.startsWith('data-astro-cid')) img.setAttribute(at, '');
+        box.replaceChildren(img);
+      }
+      let play = card.querySelector<HTMLElement>('.play');
+      if (play) {
+        play.dataset.embed = 'soundcloud';
+        play.dataset.url = it.link;
+        play.dataset.title = it.title;
+        play.setAttribute('aria-label', `Listen to ${it.title}`);
+        play.classList.remove('is-playing');
+        play.setAttribute('aria-pressed', 'false');
+      }
+      const h = card.querySelector('h3 a');
+      if (h) h.textContent = it.title;
+      const t = card.querySelector('time');
+      if (t) { t.setAttribute('datetime', it.date); t.textContent = dot(new Date(it.date)); }
+      const pills = card.querySelector('.pills');
+      if (pills) {
+        const keep = [...pills.querySelectorAll('li')].find((li) => li.textContent?.trim() === 'SoundCloud');
+        pills.replaceChildren(...(keep ? [keep] : []));
+      }
+      grid.prepend(card);
+    }
+    const cards = grid.querySelectorAll('.card');
+    for (let i = cards.length - 1; i >= total; i--) cards[i].remove();
+  }
+  document.addEventListener('astro:page-load', freshUploads);
+</script>
 
 <style>
   .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; padding: 26px 0 50px; }
