@@ -230,11 +230,44 @@ async function calendar(request, ctx) {
   return res;
 }
 
+// The newest SoundCloud uploads, read every 5 minutes at most.
+// The start page uses this to show a new upload right away, before the next rebuild.
+async function soundcloud(request, ctx) {
+  const cache = caches.default;
+  const key = new Request(new URL('/api/soundcloud', request.url).toString());
+  const hit = await cache.match(key);
+  if (hit) return hit;
+  const id = String(site.soundcloudUserId || '').trim();
+  let items = [];
+  try {
+    const res = await fetch(`https://feeds.soundcloud.com/users/soundcloud:users:${id}/sounds.rss`, { signal: AbortSignal.timeout(8000) });
+    if (res.ok) {
+      const xml = await res.text();
+      const dec = (t) => t.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").trim();
+      const tag = (it, n) => { const m = it.match(new RegExp(`<${n}[^>]*>([\\s\\S]*?)</${n}>`)); return m ? dec(m[1]) : ''; };
+      items = (xml.match(/<item>[\s\S]*?<\/item>/g) || []).slice(0, 12).map((it) => ({
+        title: tag(it, 'title'),
+        link: tag(it, 'link'),
+        date: new Date(tag(it, 'pubDate') || Date.now()).toISOString(),
+        image: (it.match(/<itunes:image[^>]*href="([^"]+)"/) || [])[1]?.replace(/-(large|t3000x3000|original)\./, '-t500x500.') || '',
+      })).filter((x) => x.link && x.title);
+    }
+  } catch {
+    /* SoundCloud not reachable: the page keeps what it was built with */
+  }
+  const out = new Response(JSON.stringify({ items }), {
+    headers: { 'content-type': 'application/json', 'cache-control': 'public, max-age=300' },
+  });
+  if (items.length) ctx.waitUntil(cache.put(key, out.clone()));
+  return out;
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === '/api/onair') return onAir(request, ctx);
     if (url.pathname === '/api/calendar') return calendar(request, ctx);
+    if (url.pathname === '/api/soundcloud') return soundcloud(request, ctx);
     if (url.pathname === '/api/chat' || url.pathname === '/api/chat/') return chat(request, ctx);
     return env.ASSETS.fetch(request);
   },
