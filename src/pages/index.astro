@@ -77,6 +77,17 @@ const supportLink = site.support.link || '/support';
     const known = new Set([...grid.querySelectorAll<HTMLElement>('[data-url]')].map((b) => norm(b.dataset.url || '')));
     const newest = Math.max(0, ...[...grid.querySelectorAll('time')].map((t) => Date.parse(t.getAttribute('datetime') || '') || 0));
     const fresh = items.filter((i) => !known.has(norm(i.link)) && Date.parse(i.date) > newest);
+    // A track renamed or given a new cover on SoundCloud shows its new name and picture here too.
+    const byLink = new Map(items.map((i) => [norm(i.link), i]));
+    grid.querySelectorAll<HTMLElement>('.card').forEach((card) => {
+      const play = card.querySelector<HTMLElement>('[data-url]');
+      const it = play && byLink.get(norm(play.dataset.url || ''));
+      if (!it) return;
+      const h = card.querySelector('h3 a');
+      if (h && h.textContent?.trim() !== it.title) { h.textContent = it.title; play.dataset.title = it.title; play.setAttribute('aria-label', `Listen to ${it.title}`); }
+      const img = card.querySelector<HTMLImageElement>('.img img');
+      if (img && it.image && img.getAttribute('src') !== it.image && !card.querySelector('.blank')) img.src = it.image;
+    });
     if (!fresh.length) return;
     const total = grid.querySelectorAll('.card').length;
     const dot = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d).replaceAll('-', '.');
