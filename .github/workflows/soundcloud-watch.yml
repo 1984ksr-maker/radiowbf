@@ -20,13 +20,15 @@ jobs:
           if [ -z "$ID" ]; then echo "No SoundCloud user number"; exit 0; fi
           FEED="https://feeds.soundcloud.com/users/soundcloud:users:$ID/sounds.rss"
           curl -fsSL "$FEED" -o feed.rss || { echo "Feed not reachable"; exit 0; }
-          NEWEST=$(python3 -c "import xml.etree.ElementTree as E;i=E.parse('feed.rss').getroot().find('channel/item');print((i.findtext('link') or '').strip() if i is not None else '')")
+          # A fingerprint of every track's title, link, text and picture, so a new upload
+          # and also a changed name, text or cover make the website rebuild.
+          NEWEST=$(python3 -c "import hashlib,xml.etree.ElementTree as E;c=E.parse('feed.rss').getroot().find('channel');print(hashlib.sha1('\n'.join('|'.join([i.findtext('title') or '',i.findtext('link') or '',i.findtext('description') or '']+[e.get('href') or '' for e in i if e.tag.endswith('image')]) for i in c.findall('item')).encode()).hexdigest() if c is not None and c.find('item') is not None else '')")
           OLD=$(cat src/data/soundcloud-latest.txt 2>/dev/null || true)
-          echo "Newest: $NEWEST"
-          if [ -z "$NEWEST" ] || [ "$NEWEST" = "$OLD" ]; then echo "Nothing new"; exit 0; fi
+          echo "Fingerprint: $NEWEST"
+          if [ -z "$NEWEST" ] || [ "$NEWEST" = "$OLD" ]; then echo "Nothing changed"; exit 0; fi
           echo "$NEWEST" > src/data/soundcloud-latest.txt
           git config user.name "RadioWBF bot"
           git config user.email "actions@users.noreply.github.com"
           git add src/data/soundcloud-latest.txt
-          git commit -m "New SoundCloud upload"
+          git commit -m "SoundCloud updated"
           git push
